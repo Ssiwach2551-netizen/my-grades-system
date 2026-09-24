@@ -3,91 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบคำนวณเกรด</title>
+    <title>ระบบจัดเก็บผลการเรียน</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Sarabun', sans-serif; }
+        .sidebar-expanded { width: 16rem; } /* 256px */
+        .sidebar-collapsed { width: 4rem; overflow: hidden; }
+        .menu-text { transition: opacity 0.2s; }
+        .sidebar-collapsed .menu-text { opacity: 0; display: none; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen text-gray-800">
+<body class="bg-gray-100 min-h-screen text-gray-800 flex">
 
-    <!-- ส่วนที่ 1: หน้า Login -->
-    <div id="loginSection" class="flex items-center justify-center min-h-screen">
-        <div class="bg-white p-8 rounded-lg shadow-md w-96">
-            <h2 class="text-2xl font-bold text-center mb-6 text-blue-600">เข้าสู่ระบบ</h2>
-            <input type="text" id="username" placeholder="ชื่อผู้ใช้" class="w-full p-3 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400">
-            <input type="password" id="password" placeholder="รหัสผ่าน" class="w-full p-3 border rounded mb-6 focus:outline-none focus:ring-2 focus:ring-blue-400">
-            <button onclick="login()" class="w-full bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-700 transition">เข้าสู่ระบบ</button>
-            <p id="loginError" class="text-red-500 text-center mt-4 hidden">ข้อมูลไม่ถูกต้อง!</p>
+    <!-- Auth Section (Login & Register) -->
+    <div id="authSection" class="flex flex-col items-center justify-center w-full min-h-screen bg-blue-50 absolute z-50">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-96">
+            <h2 id="authTitle" class="text-2xl font-bold text-center mb-6 text-blue-600">เข้าสู่ระบบ</h2>
+            
+            <input type="text" id="authUsername" placeholder="รหัสนักเรียน / ชื่อผู้ใช้" class="w-full p-3 border rounded mb-4 focus:ring-2 focus:ring-blue-400 outline-none">
+            
+            <!-- ช่องสำหรับ Register -->
+            <input type="text" id="authName" placeholder="ชื่อ-นามสกุล" class="w-full p-3 border rounded mb-4 hidden focus:ring-2 focus:ring-blue-400 outline-none">
+            
+            <input type="password" id="authPassword" placeholder="รหัสผ่าน" class="w-full p-3 border rounded mb-6 focus:ring-2 focus:ring-blue-400 outline-none">
+            
+            <button onclick="handleAuth()" id="authBtn" class="w-full bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-700 transition">เข้าสู่ระบบ</button>
+            
+            <p class="text-center mt-4 text-sm">
+                <span id="authToggleText">ยังไม่มีบัญชี? </span>
+                <button onclick="toggleAuthMode()" class="text-blue-500 font-bold hover:underline" id="authToggleBtn">ลงทะเบียนที่นี่</button>
+            </p>
         </div>
     </div>
 
-    <!-- ส่วนที่ 2: หน้า Dashboard (จัดการเกรด) -->
-    <div id="dashboardSection" class="hidden p-6 max-w-5xl mx-auto">
-        <div class="flex justify-between items-center mb-8 bg-white p-4 rounded-lg shadow">
-            <h1 class="text-2xl font-bold">ยินดีต้อนรับ, <span id="displayName" class="text-blue-600"></span></h1>
-            <div>
-                <span class="text-xl font-bold mr-4 bg-yellow-200 px-4 py-2 rounded">GPAX (สะสม): <span id="cgpa">0.00</span></span>
-                <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">ออกจากระบบ</button>
+    <!-- Sidebar -->
+    <aside id="sidebar" class="bg-blue-800 text-white sidebar-expanded transition-all duration-300 flex flex-col hidden">
+        <div class="h-16 flex items-center justify-between px-4 bg-blue-900">
+            <span class="font-bold text-lg menu-text truncate">ระบบเกรด</span>
+            <button onclick="toggleSidebar()" class="text-white hover:text-gray-300">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+        </div>
+        <nav class="flex-1 mt-4 px-2 space-y-2">
+            <button onclick="switchTab('dashboard')" class="w-full flex items-center p-3 rounded hover:bg-blue-700 text-left">
+                <span>📊</span><span class="ml-3 menu-text">ภาพรวม (GPA)</span>
+            </button>
+            <button onclick="switchTab('manage')" class="w-full flex items-center p-3 rounded hover:bg-blue-700 text-left">
+                <span>📝</span><span class="ml-3 menu-text">จัดการ/กรอกเกรด</span>
+            </button>
+            <button onclick="switchTab('import')" class="w-full flex items-center p-3 rounded hover:bg-blue-700 text-left">
+                <span>📥</span><span class="ml-3 menu-text">นำเข้า ปพ.</span>
+            </button>
+        </nav>
+        <div class="p-4 bg-blue-900 border-t border-blue-700">
+            <div class="flex items-center">
+                <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center font-bold" id="userInitial">U</div>
+                <span class="ml-3 menu-text truncate text-sm" id="displayName">ผู้ใช้งาน</span>
+            </div>
+            <button onclick="logout()" class="mt-4 w-full text-left text-sm text-red-300 hover:text-red-100 menu-text">ออกจากระบบ</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main id="mainContent" class="flex-1 flex flex-col h-screen overflow-hidden hidden">
+        <header class="h-16 bg-white shadow flex items-center px-6">
+            <h1 id="pageTitle" class="text-xl font-bold text-gray-700">ภาพรวมผลการเรียน</h1>
+        </header>
+        
+        <div class="p-6 overflow-y-auto flex-1 bg-gray-50">
+            <!-- Dashboard Tab -->
+            <div id="tab-dashboard" class="tab-content">
+                <div class="bg-white p-6 rounded-lg shadow-sm border mb-6 flex justify-between items-center border-l-4 border-blue-500">
+                    <div>
+                        <h3 class="text-gray-500 text-sm">เกรดเฉลี่ยสะสม (GPAX)</h3>
+                        <p class="text-4xl font-bold text-blue-700" id="cgpa-display">0.00</p>
+                    </div>
+                </div>
+                <div id="dashboard-tables"></div>
+            </div>
+
+            <!-- Manage Grades Tab (กรอก/แก้ไข) -->
+            <div id="tab-manage" class="tab-content hidden">
+                <div class="bg-white p-6 rounded-lg shadow-sm border mb-6">
+                    <h3 class="text-lg font-bold mb-4">รายวิชาทั้งหมด</h3>
+                    <p class="text-sm text-gray-500 mb-4">* ปรับปรุงหน่วยกิต หรือกรอกเกรดที่เพิ่งประกาศแล้วกด "บันทึกการเปลี่ยนแปลง"</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left" id="editGradeTable">
+                            <thead>
+                                <tr class="bg-gray-100">
+                                    <th class="p-2">เทอม</th>
+                                    <th class="p-2">วิชา</th>
+                                    <th class="p-2 w-24">หน่วยกิต</th>
+                                    <th class="p-2 w-24">เกรด</th>
+                                </tr>
+                            </thead>
+                            <tbody id="editGradeBody"></tbody>
+                        </table>
+                        <button onclick="addEmptyRow()" class="mt-4 text-blue-600 hover:underline text-sm">+ เพิ่มวิชาใหม่ด้วยตัวเอง</button>
+                    </div>
+                    <div class="mt-6 text-right">
+                        <button onclick="saveAllGrades()" class="bg-green-600 text-white px-6 py-2 rounded font-bold hover:bg-green-700">💾 บันทึกการเปลี่ยนแปลง</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Import Tab (นำเข้าจาก Excel/ปพ.) -->
+            <div id="tab-import" class="tab-content hidden">
+                <div class="bg-white p-6 rounded-lg shadow-sm border">
+                    <h3 class="text-lg font-bold mb-4">นำเข้าข้อมูล ปพ. / รายวิชา</h3>
+                    <p class="mb-4 text-gray-600 text-sm">คัดลอกข้อมูลจาก Excel แล้ววางที่นี่ (รูปแบบ: เทอม | ชื่อวิชา | หน่วยกิต | เกรด)</p>
+                    <textarea id="importText" rows="10" class="w-full p-3 border rounded mb-4 font-mono text-sm bg-gray-50" placeholder="ม.4 เทอม 1    ภาษาไทย    1.0    4&#10;ม.4 เทอม 1    คณิตศาสตร์  1.5    (เว้นว่างถ้ายังไม่ออก)"></textarea>
+                    <button onclick="processImport()" class="bg-blue-600 text-white px-6 py-2 rounded font-bold hover:bg-blue-700">นำเข้าข้อมูล</button>
+                </div>
             </div>
         </div>
-
-        <!-- ฟอร์มเพิ่มรายวิชา -->
-        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
-            <h3 class="text-lg font-bold mb-4">เพิ่มรายวิชาใหม่</h3>
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <input type="text" id="newSemester" placeholder="เทอม (เช่น ม.4 เทอม 1)" class="p-2 border rounded">
-                <input type="text" id="newSubject" placeholder="ชื่อวิชา" class="p-2 border rounded">
-                <input type="number" id="newCredit" placeholder="หน่วยกิต" step="0.5" class="p-2 border rounded">
-                <input type="number" id="newGrade" placeholder="เกรดที่ได้" step="0.5" class="p-2 border rounded">
-                <button onclick="addGrade()" id="addBtn" class="bg-green-500 text-white font-bold p-2 rounded hover:bg-green-600">บันทึก</button>
-            </div>
-        </div>
-
-        <!-- พื้นที่แสดงตารางเกรด -->
-        <div id="gradesContainer"></div>
-    </div>
+    </main>
 
     <script>
-        // *** นำ URL ของ Web App จาก Google Apps Script มาใส่ที่นี่ ***
         const API_URL = "https://script.google.com/macros/s/AKfycbzwkb-bpdLYL7KnnjKd0Vkou3KkGGQhjbdXYYR7bOYIb3DTuAEJAHaeYOW1kzC4SfBZ/exec"; 
         
         let currentUser = "";
+        let isRegisterMode = false;
+        let globalGrades = [];
 
-        // ตรวจสอบสถานะล็อกอินเมื่อเปิดหน้าเว็บ
         window.onload = () => {
-            const savedUser = localStorage.getItem("username");
-            const savedName = localStorage.getItem("name");
-            if (savedUser) {
-                currentUser = savedUser;
-                document.getElementById("displayName").innerText = savedName;
-                showDashboard();
+            if (localStorage.getItem("username")) {
+                setupUserSession(localStorage.getItem("username"), localStorage.getItem("name"));
             }
         };
 
-        async function login() {
-            const user = document.getElementById("username").value;
-            const pass = document.getElementById("password").value;
-            const btn = document.querySelector("#loginSection button");
+        // --- Auth System ---
+        function toggleAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            document.getElementById("authTitle").innerText = isRegisterMode ? "ลงทะเบียนนักเรียน" : "เข้าสู่ระบบ";
+            document.getElementById("authBtn").innerText = isRegisterMode ? "ลงทะเบียน" : "เข้าสู่ระบบ";
+            document.getElementById("authToggleText").innerText = isRegisterMode ? "มีบัญชีอยู่แล้ว? " : "ยังไม่มีบัญชี? ";
+            document.getElementById("authToggleBtn").innerText = isRegisterMode ? "เข้าสู่ระบบที่นี่" : "ลงทะเบียนที่นี่";
+            document.getElementById("authName").classList.toggle("hidden");
+        }
+
+        async function handleAuth() {
+            const user = document.getElementById("authUsername").value;
+            const pass = document.getElementById("authPassword").value;
+            const name = document.getElementById("authName").value;
             
-            btn.innerText = "กำลังเข้าสู่ระบบ...";
+            if (!user || !pass || (isRegisterMode && !name)) return alert("กรุณากรอกข้อมูลให้ครบ");
             
-            const res = await fetch(API_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "login", username: user, password: pass })
-            });
-            const data = await res.json();
+            document.getElementById("authBtn").innerText = "กำลังประมวลผล...";
+            const action = isRegisterMode ? "register" : "login";
             
-            if (data.success) {
-                localStorage.setItem("username", user);
-                localStorage.setItem("name", data.name);
-                currentUser = user;
-                document.getElementById("displayName").innerText = data.name;
-                showDashboard();
-            } else {
-                document.getElementById("loginError").classList.remove("hidden");
-                btn.innerText = "เข้าสู่ระบบ";
+            try {
+                const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action, username: user, password: pass, name }) });
+                const data = await res.json();
+                
+                if (data.success) {
+                    if (isRegisterMode) {
+                        alert("ลงทะเบียนสำเร็จ กรุณาเข้าสู่ระบบ");
+                        toggleAuthMode();
+                    } else {
+                        setupUserSession(user, data.name);
+                    }
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
             }
+            document.getElementById("authBtn").innerText = isRegisterMode ? "ลงทะเบียน" : "เข้าสู่ระบบ";
+        }
+
+        function setupUserSession(username, name) {
+            currentUser = username;
+            localStorage.setItem("username", username);
+            localStorage.setItem("name", name);
+            
+            document.getElementById("authSection").classList.add("hidden");
+            document.getElementById("sidebar").classList.remove("hidden");
+            document.getElementById("mainContent").classList.remove("hidden");
+            
+            document.getElementById("displayName").innerText = name;
+            document.getElementById("userInitial").innerText = name.charAt(0);
+            
+            fetchGrades();
         }
 
         function logout() {
@@ -95,133 +192,143 @@
             location.reload();
         }
 
-        function showDashboard() {
-            document.getElementById("loginSection").classList.add("hidden");
-            document.getElementById("dashboardSection").classList.remove("hidden");
-            fetchGrades();
+        // --- UI & Sidebar ---
+        function toggleSidebar() {
+            const sb = document.getElementById("sidebar");
+            if (sb.classList.contains("sidebar-expanded")) {
+                sb.classList.replace("sidebar-expanded", "sidebar-collapsed");
+            } else {
+                sb.classList.replace("sidebar-collapsed", "sidebar-expanded");
+            }
         }
 
+        function switchTab(tabId) {
+            document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
+            document.getElementById(`tab-${tabId}`).classList.remove("hidden");
+            
+            const titles = { dashboard: "ภาพรวมผลการเรียน", manage: "จัดการและกรอกเกรด", import: "นำเข้าข้อมูล ปพ." };
+            document.getElementById("pageTitle").innerText = titles[tabId];
+            
+            if(tabId === 'manage') renderManageTable();
+        }
+
+        // --- Data Management ---
         async function fetchGrades() {
-            document.getElementById("gradesContainer").innerHTML = "<p class='text-center'>กำลังโหลดข้อมูล...</p>";
-            const res = await fetch(API_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "getGrades", username: currentUser })
-            });
+            const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getGrades", username: currentUser }) });
             const result = await res.json();
-            
             if (result.success) {
-                renderGrades(result.data);
+                globalGrades = result.data;
+                renderDashboard();
             }
         }
 
-        async function addGrade() {
-            const sem = document.getElementById("newSemester").value;
-            const sub = document.getElementById("newSubject").value;
-            const cred = document.getElementById("newCredit").value;
-            const grd = document.getElementById("newGrade").value;
-            
-            if (!sem || !sub || !cred || !grd) return alert("กรุณากรอกข้อมูลให้ครบ");
-
-            document.getElementById("addBtn").innerText = "กำลังบันทึก...";
-
-            const res = await fetch(API_URL, {
-                method: "POST",
-                body: JSON.stringify({ 
-                    action: "addGrade", 
-                    username: currentUser, 
-                    semester: sem, 
-                    subject: sub, 
-                    credit: cred, 
-                    grade: grd 
-                })
-            });
-            
-            const result = await res.json();
-            if (result.success) {
-                // ล้างฟอร์ม
-                document.getElementById("newSubject").value = "";
-                document.getElementById("newCredit").value = "";
-                document.getElementById("newGrade").value = "";
-                document.getElementById("addBtn").innerText = "บันทึก";
-                fetchGrades(); // โหลดข้อมูลใหม่
-            }
-        }
-
-        function renderGrades(grades) {
-            const container = document.getElementById("gradesContainer");
+        function renderDashboard() {
+            let totalCreditAll = 0, totalPointAll = 0;
+            const container = document.getElementById("dashboard-tables");
             container.innerHTML = "";
-            
-            if (grades.length === 0) {
-                container.innerHTML = "<p class='text-center text-gray-500'>ยังไม่มีข้อมูลผลการเรียน</p>";
-                document.getElementById("cgpa").innerText = "0.00";
-                return;
-            }
 
-            // จัดกลุ่มข้อมูลตามเทอม (Semester)
-            const grouped = grades.reduce((acc, curr) => {
+            const grouped = globalGrades.reduce((acc, curr) => {
                 if (!acc[curr.semester]) acc[curr.semester] = [];
                 acc[curr.semester].push(curr);
                 return acc;
             }, {});
 
-            let totalCreditAll = 0;
-            let totalPointAll = 0;
-
             for (const [semester, subjects] of Object.entries(grouped)) {
-                let termCredit = 0;
-                let termPoint = 0;
-                
-                let tableHTML = `
-                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-                    <h3 class="text-xl font-bold mb-4 text-blue-700">${semester}</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-gray-100 border-b">
-                                    <th class="p-3">วิชา</th>
-                                    <th class="p-3 text-center">หน่วยกิต</th>
-                                    <th class="p-3 text-center">เกรดที่ได้</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                `;
-
+                let termCredit = 0, termPoint = 0;
+                let rows = "";
                 subjects.forEach(s => {
-                    termCredit += s.credit;
-                    termPoint += (s.credit * s.grade);
-                    tableHTML += `
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="p-3">${s.subject}</td>
-                            <td class="p-3 text-center">${s.credit.toFixed(1)}</td>
-                            <td class="p-3 text-center">${s.grade.toFixed(1)}</td>
-                        </tr>
-                    `;
+                    if(s.grade !== "" && s.grade !== null) { // คำนวณเฉพาะวิชาที่เกรดออกแล้ว
+                        termCredit += s.credit;
+                        termPoint += (s.credit * s.grade);
+                    }
+                    rows += `<tr class="border-b"><td class="p-2">${s.subject}</td><td class="p-2 text-center">${s.credit}</td><td class="p-2 text-center font-bold ${s.grade === "" ? 'text-gray-300' : ''}">${s.grade !== "" ? s.grade : '-'}</td></tr>`;
                 });
-
+                
                 totalCreditAll += termCredit;
                 totalPointAll += termPoint;
                 
-                const termGPA = termCredit > 0 ? (termPoint / termCredit).toFixed(2) : "0.00";
-
-                tableHTML += `
-                            </tbody>
-                            <tfoot>
-                                <tr class="bg-blue-50 font-bold">
-                                    <td class="p-3 text-right">รวมเทอมนี้ (GPA)</td>
-                                    <td class="p-3 text-center">${termCredit.toFixed(1)}</td>
-                                    <td class="p-3 text-center text-blue-600">${termGPA}</td>
-                                </tr>
-                            </tfoot>
-                        </table>
+                container.innerHTML += `
+                    <div class="bg-white p-4 rounded-lg shadow-sm border mb-4">
+                        <h4 class="font-bold text-blue-800 mb-2">${semester}</h4>
+                        <table class="w-full text-sm">${rows}</table>
                     </div>
-                </div>
                 `;
-                container.innerHTML += tableHTML;
             }
-
-            // คำนวณเกรดเฉลี่ยสะสม (CGPA)
+            
             const cgpa = totalCreditAll > 0 ? (totalPointAll / totalCreditAll).toFixed(2) : "0.00";
-            document.getElementById("cgpa").innerText = cgpa;
+            document.getElementById("cgpa-display").innerText = cgpa;
+        }
+
+        function renderManageTable() {
+            const tbody = document.getElementById("editGradeBody");
+            tbody.innerHTML = "";
+            globalGrades.forEach((item, index) => {
+                tbody.innerHTML += `
+                    <tr class="border-b" data-index="${index}" data-rowid="${item.rowId || ''}">
+                        <td class="p-2"><input type="text" class="w-full border p-1 rounded sem-input" value="${item.semester}"></td>
+                        <td class="p-2"><input type="text" class="w-full border p-1 rounded sub-input" value="${item.subject}"></td>
+                        <td class="p-2"><input type="number" step="0.5" class="w-full border p-1 rounded cred-input" value="${item.credit}"></td>
+                        <td class="p-2"><input type="number" step="0.5" class="w-full border p-1 rounded grd-input" value="${item.grade !== "" ? item.grade : ''}" placeholder="-"></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function addEmptyRow() {
+            globalGrades.push({ semester: "", subject: "", credit: 0, grade: "" });
+            renderManageTable();
+        }
+
+        async function saveAllGrades() {
+            const rows = document.querySelectorAll("#editGradeBody tr");
+            const updatedGrades = [];
+            
+            rows.forEach(tr => {
+                const sem = tr.querySelector(".sem-input").value;
+                const sub = tr.querySelector(".sub-input").value;
+                if (!sem || !sub) return; // ข้ามบรรทัดว่าง
+                
+                updatedGrades.push({
+                    rowId: tr.getAttribute("data-rowid") || null,
+                    semester: sem,
+                    subject: sub,
+                    credit: parseFloat(tr.querySelector(".cred-input").value) || 0,
+                    grade: tr.querySelector(".grd-input").value
+                });
+            });
+
+            const res = await fetch(API_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "saveGrades", username: currentUser, gradesList: updatedGrades })
+            });
+            const result = await res.json();
+            if(result.success) {
+                alert("บันทึกสำเร็จ");
+                fetchGrades(); // ดึงข้อมูลใหม่
+                switchTab('dashboard');
+            }
+        }
+
+        // --- Import System ---
+        function processImport() {
+            const text = document.getElementById("importText").value;
+            const lines = text.split("\n");
+            
+            lines.forEach(line => {
+                const parts = line.split(/\t/); // แยกด้วย Tab (เวลาคัดลอกจาก Excel)
+                if (parts.length >= 3) {
+                    globalGrades.push({
+                        semester: parts[0].trim(),
+                        subject: parts[1].trim(),
+                        credit: parseFloat(parts[2].trim()) || 0,
+                        grade: parts[3] ? parseFloat(parts[3].trim()) : ""
+                    });
+                }
+            });
+            
+            document.getElementById("importText").value = "";
+            alert("ดึงข้อมูลสำเร็จ! กรุณาไปที่เมนู 'จัดการ/กรอกเกรด' เพื่อตรวจสอบและกดบันทึก");
+            switchTab('manage');
         }
     </script>
 </body>
