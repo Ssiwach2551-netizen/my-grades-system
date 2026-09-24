@@ -5,121 +5,260 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบจัดเก็บผลการเรียน</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { font-family: 'Sarabun', sans-serif; }
-        .sidebar-expanded { width: 16rem; } /* 256px */
-        .sidebar-collapsed { width: 4rem; overflow: hidden; }
-        .menu-text { transition: opacity 0.2s; }
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Prompt', sans-serif; background-color: #f3f4f6; }
+        .sidebar-expanded { width: 16rem; } 
+        .sidebar-collapsed { width: 5rem; overflow: hidden; }
+        .menu-text { transition: opacity 0.3s ease; }
         .sidebar-collapsed .menu-text { opacity: 0; display: none; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen text-gray-800 flex">
+<body class="flex h-screen overflow-hidden text-gray-800">
 
     <!-- Auth Section (Login & Register) -->
-    <div id="authSection" class="flex flex-col items-center justify-center w-full min-h-screen bg-blue-50 absolute z-50">
-        <div class="bg-white p-8 rounded-lg shadow-lg w-96">
-            <h2 id="authTitle" class="text-2xl font-bold text-center mb-6 text-blue-600">เข้าสู่ระบบ</h2>
+    <div id="authSection" class="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 z-50">
+        <div class="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md transform transition-all">
+            <div class="text-center mb-8">
+                <i class="fas fa-graduation-cap text-5xl text-indigo-600 mb-4"></i>
+                <h2 id="authTitle" class="text-3xl font-bold text-gray-800">เข้าสู่ระบบ</h2>
+                <p class="text-gray-500 mt-2 text-sm">จัดการผลการเรียนของคุณอย่างมีประสิทธิภาพ</p>
+            </div>
             
-            <input type="text" id="authUsername" placeholder="รหัสนักเรียน / ชื่อผู้ใช้" class="w-full p-3 border rounded mb-4 focus:ring-2 focus:ring-blue-400 outline-none">
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">รหัสนักเรียน / ชื่อผู้ใช้</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-user text-gray-400"></i>
+                        </div>
+                        <input type="text" id="authUsername" class="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                    </div>
+                </div>
+                
+                <div id="authNameContainer" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อ-นามสกุล</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-id-card text-gray-400"></i>
+                        </div>
+                        <input type="text" id="authName" class="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">รหัสผ่าน</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-lock text-gray-400"></i>
+                        </div>
+                        <input type="password" id="authPassword" class="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                    </div>
+                </div>
+                
+                <button onclick="handleAuth()" id="authBtn" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 transition-all shadow-md mt-2">
+                    เข้าสู่ระบบ
+                </button>
+            </div>
             
-            <!-- ช่องสำหรับ Register -->
-            <input type="text" id="authName" placeholder="ชื่อ-นามสกุล" class="w-full p-3 border rounded mb-4 hidden focus:ring-2 focus:ring-blue-400 outline-none">
-            
-            <input type="password" id="authPassword" placeholder="รหัสผ่าน" class="w-full p-3 border rounded mb-6 focus:ring-2 focus:ring-blue-400 outline-none">
-            
-            <button onclick="handleAuth()" id="authBtn" class="w-full bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-700 transition">เข้าสู่ระบบ</button>
-            
-            <p class="text-center mt-4 text-sm">
-                <span id="authToggleText">ยังไม่มีบัญชี? </span>
-                <button onclick="toggleAuthMode()" class="text-blue-500 font-bold hover:underline" id="authToggleBtn">ลงทะเบียนที่นี่</button>
-            </p>
+            <div class="text-center mt-6">
+                <p class="text-sm text-gray-600">
+                    <span id="authToggleText">ยังไม่มีบัญชี? </span>
+                    <button onclick="toggleAuthMode()" class="text-indigo-600 font-semibold hover:text-indigo-800 transition-colors" id="authToggleBtn">ลงทะเบียนที่นี่</button>
+                </p>
+            </div>
         </div>
     </div>
 
     <!-- Sidebar -->
-    <aside id="sidebar" class="bg-blue-800 text-white sidebar-expanded transition-all duration-300 flex flex-col hidden">
-        <div class="h-16 flex items-center justify-between px-4 bg-blue-900">
-            <span class="font-bold text-lg menu-text truncate">ระบบเกรด</span>
-            <button onclick="toggleSidebar()" class="text-white hover:text-gray-300">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+    <aside id="sidebar" class="bg-indigo-900 text-white sidebar-expanded transition-all duration-300 flex flex-col hidden shadow-xl relative z-20">
+        <div class="h-20 flex items-center justify-between px-5 border-b border-indigo-800 bg-indigo-950">
+            <div class="flex items-center">
+                <i class="fas fa-graduation-cap text-2xl text-indigo-300"></i>
+                <span class="font-bold text-xl ml-3 menu-text truncate tracking-wide">Grade Sys</span>
+            </div>
+            <button onclick="toggleSidebar()" class="text-indigo-300 hover:text-white transition-colors focus:outline-none p-1 rounded-md hover:bg-indigo-800">
+                <i class="fas fa-bars text-xl"></i>
             </button>
         </div>
-        <nav class="flex-1 mt-4 px-2 space-y-2">
-            <button onclick="switchTab('dashboard')" class="w-full flex items-center p-3 rounded hover:bg-blue-700 text-left">
-                <span>📊</span><span class="ml-3 menu-text">ภาพรวม (GPA)</span>
+        
+        <nav class="flex-1 mt-6 px-3 space-y-2 overflow-y-auto">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center p-3 rounded-lg bg-indigo-800 text-white transition-all text-left group">
+                <i class="fas fa-chart-pie text-lg w-6 text-center group-hover:text-indigo-200"></i>
+                <span class="ml-3 menu-text font-medium">ภาพรวม (GPA)</span>
             </button>
-            <button onclick="switchTab('manage')" class="w-full flex items-center p-3 rounded hover:bg-blue-700 text-left">
-                <span>📝</span><span class="ml-3 menu-text">จัดการ/กรอกเกรด</span>
+            <button onclick="switchTab('manage')" id="nav-manage" class="w-full flex items-center p-3 rounded-lg text-indigo-200 hover:bg-indigo-800 hover:text-white transition-all text-left group">
+                <i class="fas fa-edit text-lg w-6 text-center group-hover:text-indigo-200"></i>
+                <span class="ml-3 menu-text font-medium">จัดการ/กรอกเกรด</span>
             </button>
-            <button onclick="switchTab('import')" class="w-full flex items-center p-3 rounded hover:bg-blue-700 text-left">
-                <span>📥</span><span class="ml-3 menu-text">นำเข้า ปพ.</span>
+            <button onclick="switchTab('import')" id="nav-import" class="w-full flex items-center p-3 rounded-lg text-indigo-200 hover:bg-indigo-800 hover:text-white transition-all text-left group">
+                <i class="fas fa-file-import text-lg w-6 text-center group-hover:text-indigo-200"></i>
+                <span class="ml-3 menu-text font-medium">นำเข้าข้อมูล</span>
             </button>
         </nav>
-        <div class="p-4 bg-blue-900 border-t border-blue-700">
+        
+        <div class="p-4 bg-indigo-950 border-t border-indigo-800 mt-auto">
             <div class="flex items-center">
-                <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center font-bold" id="userInitial">U</div>
-                <span class="ml-3 menu-text truncate text-sm" id="displayName">ผู้ใช้งาน</span>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-purple-400 to-indigo-500 flex items-center justify-center font-bold text-white shadow-inner" id="userInitial">U</div>
+                <div class="ml-3 menu-text overflow-hidden">
+                    <p class="truncate text-sm font-semibold text-white" id="displayName">ผู้ใช้งาน</p>
+                    <p class="text-xs text-indigo-300 truncate" id="displayUsername">username</p>
+                </div>
             </div>
-            <button onclick="logout()" class="mt-4 w-full text-left text-sm text-red-300 hover:text-red-100 menu-text">ออกจากระบบ</button>
+            <button onclick="logout()" class="mt-4 w-full flex items-center p-2 rounded-lg text-red-300 hover:bg-red-500 hover:text-white transition-colors text-sm menu-text">
+                <i class="fas fa-sign-out-alt w-5"></i> ออกจากระบบ
+            </button>
         </div>
     </aside>
 
     <!-- Main Content -->
-    <main id="mainContent" class="flex-1 flex flex-col h-screen overflow-hidden hidden">
-        <header class="h-16 bg-white shadow flex items-center px-6">
-            <h1 id="pageTitle" class="text-xl font-bold text-gray-700">ภาพรวมผลการเรียน</h1>
+    <main id="mainContent" class="flex-1 flex flex-col h-screen overflow-hidden hidden bg-gray-50 relative z-10">
+        <!-- Header -->
+        <header class="h-20 bg-white shadow-sm flex items-center justify-between px-8 border-b border-gray-200">
+            <h1 id="pageTitle" class="text-2xl font-bold text-gray-800 flex items-center">
+                <i class="fas fa-chart-pie mr-3 text-indigo-600"></i> ภาพรวมผลการเรียน
+            </h1>
+            <div class="flex items-center space-x-4">
+                 <div class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-full text-sm font-semibold border border-indigo-100 flex items-center shadow-sm">
+                    <i class="fas fa-award mr-2"></i> GPAX: <span id="header-cgpa" class="ml-2 text-lg font-bold">0.00</span>
+                </div>
+            </div>
         </header>
         
-        <div class="p-6 overflow-y-auto flex-1 bg-gray-50">
+        <!-- Content Area -->
+        <div class="p-8 overflow-y-auto flex-1">
+            
             <!-- Dashboard Tab -->
-            <div id="tab-dashboard" class="tab-content">
-                <div class="bg-white p-6 rounded-lg shadow-sm border mb-6 flex justify-between items-center border-l-4 border-blue-500">
-                    <div>
-                        <h3 class="text-gray-500 text-sm">เกรดเฉลี่ยสะสม (GPAX)</h3>
-                        <p class="text-4xl font-bold text-blue-700" id="cgpa-display">0.00</p>
+            <div id="tab-dashboard" class="tab-content fade-in">
+                
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between relative overflow-hidden group">
+                        <div class="absolute inset-y-0 left-0 w-1 bg-indigo-500"></div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 mb-1">เกรดเฉลี่ยสะสม (GPAX)</p>
+                            <p class="text-4xl font-bold text-gray-800" id="cgpa-display">0.00</p>
+                        </div>
+                        <div class="w-14 h-14 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-500 text-2xl group-hover:scale-110 transition-transform">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between relative overflow-hidden group">
+                        <div class="absolute inset-y-0 left-0 w-1 bg-green-500"></div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 mb-1">หน่วยกิตสะสม</p>
+                            <p class="text-3xl font-bold text-gray-800" id="total-credits">0.0</p>
+                        </div>
+                        <div class="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center text-green-500 text-2xl group-hover:scale-110 transition-transform">
+                            <i class="fas fa-book"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between relative overflow-hidden group">
+                        <div class="absolute inset-y-0 left-0 w-1 bg-purple-500"></div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 mb-1">จำนวนวิชาทั้งหมด</p>
+                            <p class="text-3xl font-bold text-gray-800" id="total-subjects">0</p>
+                        </div>
+                        <div class="w-14 h-14 rounded-full bg-purple-50 flex items-center justify-center text-purple-500 text-2xl group-hover:scale-110 transition-transform">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
                     </div>
                 </div>
-                <div id="dashboard-tables"></div>
+
+                <!-- Terms Grid -->
+                <h3 class="text-lg font-bold text-gray-700 mb-4 flex items-center"><i class="fas fa-calendar-alt mr-2 text-indigo-500"></i> ผลการเรียนรายภาค</h3>
+                <div id="dashboard-tables" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Term Cards will be generated here -->
+                </div>
             </div>
 
             <!-- Manage Grades Tab (กรอก/แก้ไข) -->
-            <div id="tab-manage" class="tab-content hidden">
-                <div class="bg-white p-6 rounded-lg shadow-sm border mb-6">
-                    <h3 class="text-lg font-bold mb-4">รายวิชาทั้งหมด</h3>
-                    <p class="text-sm text-gray-500 mb-4">* ปรับปรุงหน่วยกิต หรือกรอกเกรดที่เพิ่งประกาศแล้วกด "บันทึกการเปลี่ยนแปลง"</p>
+            <div id="tab-manage" class="tab-content hidden fade-in">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">จัดการรายวิชาและเกรด</h3>
+                            <p class="text-sm text-gray-500 mt-1">แก้ไขหน่วยกิต หรือกรอกเกรดเมื่อประกาศผล</p>
+                        </div>
+                        <button onclick="addEmptyRow()" class="flex items-center px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg font-medium hover:bg-indigo-100 transition-colors text-sm border border-indigo-200">
+                            <i class="fas fa-plus mr-2"></i> เพิ่มวิชาใหม่
+                        </button>
+                    </div>
+                    
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left" id="editGradeTable">
+                        <table class="w-full text-left border-collapse" id="editGradeTable">
                             <thead>
-                                <tr class="bg-gray-100">
-                                    <th class="p-2">เทอม</th>
-                                    <th class="p-2">วิชา</th>
-                                    <th class="p-2 w-24">หน่วยกิต</th>
-                                    <th class="p-2 w-24">เกรด</th>
+                                <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider">
+                                    <th class="p-4 font-semibold border-b">ภาคเรียน/เทอม</th>
+                                    <th class="p-4 font-semibold border-b">รหัส/ชื่อวิชา</th>
+                                    <th class="p-4 font-semibold border-b w-32 text-center">หน่วยกิต</th>
+                                    <th class="p-4 font-semibold border-b w-32 text-center">เกรด</th>
+                                    <th class="p-4 font-semibold border-b w-16 text-center">ลบ</th>
                                 </tr>
                             </thead>
-                            <tbody id="editGradeBody"></tbody>
+                            <tbody id="editGradeBody" class="divide-y divide-gray-100">
+                                <!-- Edit rows will be generated here -->
+                            </tbody>
                         </table>
-                        <button onclick="addEmptyRow()" class="mt-4 text-blue-600 hover:underline text-sm">+ เพิ่มวิชาใหม่ด้วยตัวเอง</button>
                     </div>
-                    <div class="mt-6 text-right">
-                        <button onclick="saveAllGrades()" class="bg-green-600 text-white px-6 py-2 rounded font-bold hover:bg-green-700">💾 บันทึกการเปลี่ยนแปลง</button>
+                    
+                    <div class="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
+                        <button onclick="saveAllGrades()" class="flex items-center bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-indigo-700 shadow-md transition-all focus:ring-4 focus:ring-indigo-300">
+                            <i class="fas fa-save mr-2"></i> บันทึกการเปลี่ยนแปลง
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Import Tab (นำเข้าจาก Excel/ปพ.) -->
-            <div id="tab-import" class="tab-content hidden">
-                <div class="bg-white p-6 rounded-lg shadow-sm border">
-                    <h3 class="text-lg font-bold mb-4">นำเข้าข้อมูล ปพ. / รายวิชา</h3>
-                    <p class="mb-4 text-gray-600 text-sm">คัดลอกข้อมูลจาก Excel แล้ววางที่นี่ (รูปแบบ: เทอม | ชื่อวิชา | หน่วยกิต | เกรด)</p>
-                    <textarea id="importText" rows="10" class="w-full p-3 border rounded mb-4 font-mono text-sm bg-gray-50" placeholder="ม.4 เทอม 1    ภาษาไทย    1.0    4&#10;ม.4 เทอม 1    คณิตศาสตร์  1.5    (เว้นว่างถ้ายังไม่ออก)"></textarea>
-                    <button onclick="processImport()" class="bg-blue-600 text-white px-6 py-2 rounded font-bold hover:bg-blue-700">นำเข้าข้อมูล</button>
+            <!-- Import Tab -->
+            <div id="tab-import" class="tab-content hidden fade-in">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden max-w-4xl mx-auto">
+                     <div class="p-6 border-b border-gray-100 bg-indigo-50 flex items-start">
+                        <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xl mr-4 flex-shrink-0">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">คำแนะนำการนำเข้าข้อมูล</h3>
+                            <p class="text-sm text-gray-600 mt-1">คัดลอกข้อมูลจากไฟล์ Excel (หรือนำข้อมูลจาก PDF แปลงเป็นตารางก่อน) แล้ววางลงในช่องด้านล่าง</p>
+                            <ul class="text-sm text-gray-600 mt-2 list-disc list-inside space-y-1">
+                                <li>ข้อมูลต้องเรียงคอลัมน์ตามนี้: <span class="font-semibold text-indigo-600">เทอม | ชื่อวิชา | หน่วยกิต | เกรด</span></li>
+                                <li>หากเกรดยังไม่ออก ให้ปล่อยช่องเกรดว่างไว้ หรือใส่ขีด (-)</li>
+                                <li>ข้อมูลแต่ละคอลัมน์ควรคั่นด้วย Tab (เมื่อคัดลอกจาก Excel จะเป็น Tab อัตโนมัติ)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">วางข้อมูลที่นี่</label>
+                        <textarea id="importText" rows="12" class="w-full p-4 border border-gray-300 rounded-lg mb-6 font-mono text-sm bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-y" placeholder="ม.4 เทอม 1    ท31101 ภาษาไทย    1.0    4&#10;ม.4 เทอม 1    ค31101 คณิตศาสตร์   1.0    3.5&#10;ม.4 เทอม 1    ว31101 วิทยาศาสตร์  1.5    (เว้นว่างถ้ายังไม่ออก)"></textarea>
+                        
+                        <div class="flex justify-end space-x-3">
+                            <button onclick="document.getElementById('importText').value=''" class="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors">ล้างข้อมูล</button>
+                            <button onclick="processImport()" class="flex items-center bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-indigo-700 shadow-md transition-all focus:ring-4 focus:ring-indigo-300">
+                                <i class="fas fa-file-import mr-2"></i> ประมวลผลข้อมูล
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
+            
         </div>
     </main>
 
     <script>
+        // *** นำ URL ของ Web App จาก Google Apps Script มาใส่ที่นี่ ***
         const API_URL = "https://script.google.com/macros/s/AKfycbzwkb-bpdLYL7KnnjKd0Vkou3KkGGQhjbdXYYR7bOYIb3DTuAEJAHaeYOW1kzC4SfBZ/exec"; 
         
         let currentUser = "";
@@ -136,10 +275,18 @@
         function toggleAuthMode() {
             isRegisterMode = !isRegisterMode;
             document.getElementById("authTitle").innerText = isRegisterMode ? "ลงทะเบียนนักเรียน" : "เข้าสู่ระบบ";
-            document.getElementById("authBtn").innerText = isRegisterMode ? "ลงทะเบียน" : "เข้าสู่ระบบ";
+            document.getElementById("authBtn").innerText = isRegisterMode ? "สร้างบัญชีใหม่" : "เข้าสู่ระบบ";
             document.getElementById("authToggleText").innerText = isRegisterMode ? "มีบัญชีอยู่แล้ว? " : "ยังไม่มีบัญชี? ";
-            document.getElementById("authToggleBtn").innerText = isRegisterMode ? "เข้าสู่ระบบที่นี่" : "ลงทะเบียนที่นี่";
-            document.getElementById("authName").classList.toggle("hidden");
+            document.getElementById("authToggleBtn").innerText = isRegisterMode ? "เข้าสู่ระบบ" : "ลงทะเบียนที่นี่";
+            
+            const nameContainer = document.getElementById("authNameContainer");
+            if(isRegisterMode) {
+                nameContainer.classList.remove("hidden");
+                nameContainer.classList.add("fade-in");
+            } else {
+                nameContainer.classList.add("hidden");
+                nameContainer.classList.remove("fade-in");
+            }
         }
 
         async function handleAuth() {
@@ -147,19 +294,31 @@
             const pass = document.getElementById("authPassword").value;
             const name = document.getElementById("authName").value;
             
-            if (!user || !pass || (isRegisterMode && !name)) return alert("กรุณากรอกข้อมูลให้ครบ");
+            if (!user || !pass || (isRegisterMode && !name)) {
+                alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+                return;
+            }
             
-            document.getElementById("authBtn").innerText = "กำลังประมวลผล...";
+            const btn = document.getElementById("authBtn");
+            const originalText = btn.innerText;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังประมวลผล...';
+            btn.disabled = true;
+            btn.classList.add("opacity-75", "cursor-not-allowed");
+            
             const action = isRegisterMode ? "register" : "login";
             
             try {
-                const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action, username: user, password: pass, name }) });
+                const res = await fetch(API_URL, { 
+                    method: "POST", 
+                    body: JSON.stringify({ action, username: user, password: pass, name }) 
+                });
                 const data = await res.json();
                 
                 if (data.success) {
                     if (isRegisterMode) {
-                        alert("ลงทะเบียนสำเร็จ กรุณาเข้าสู่ระบบ");
+                        alert("ลงทะเบียนสำเร็จ! กรุณาเข้าสู่ระบบด้วยข้อมูลที่คุณสร้าง");
                         toggleAuthMode();
+                        document.getElementById("authPassword").value = "";
                     } else {
                         setupUserSession(user, data.name);
                     }
@@ -167,9 +326,13 @@
                     alert(data.message);
                 }
             } catch (err) {
-                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง");
+                console.error(err);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                btn.classList.remove("opacity-75", "cursor-not-allowed");
             }
-            document.getElementById("authBtn").innerText = isRegisterMode ? "ลงทะเบียน" : "เข้าสู่ระบบ";
         }
 
         function setupUserSession(username, name) {
@@ -182,14 +345,17 @@
             document.getElementById("mainContent").classList.remove("hidden");
             
             document.getElementById("displayName").innerText = name;
-            document.getElementById("userInitial").innerText = name.charAt(0);
+            document.getElementById("displayUsername").innerText = `@${username}`;
+            document.getElementById("userInitial").innerText = name.charAt(0).toUpperCase();
             
             fetchGrades();
         }
 
         function logout() {
-            localStorage.clear();
-            location.reload();
+            if(confirm("คุณต้องการออกจากระบบใช่หรือไม่?")) {
+                localStorage.clear();
+                location.reload();
+            }
         }
 
         // --- UI & Sidebar ---
@@ -203,29 +369,97 @@
         }
 
         function switchTab(tabId) {
-            document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
-            document.getElementById(`tab-${tabId}`).classList.remove("hidden");
+            // Hide all tabs
+            document.querySelectorAll(".tab-content").forEach(el => {
+                el.classList.add("hidden");
+                el.classList.remove("fade-in");
+            });
             
-            const titles = { dashboard: "ภาพรวมผลการเรียน", manage: "จัดการและกรอกเกรด", import: "นำเข้าข้อมูล ปพ." };
-            document.getElementById("pageTitle").innerText = titles[tabId];
+            // Show selected tab
+            const selectedTab = document.getElementById(`tab-${tabId}`);
+            selectedTab.classList.remove("hidden");
+            
+            // Trigger reflow for animation
+            void selectedTab.offsetWidth;
+            selectedTab.classList.add("fade-in");
+            
+            // Update nav styling
+            document.querySelectorAll("nav button").forEach(btn => {
+                btn.classList.remove("bg-indigo-800", "text-white");
+                btn.classList.add("text-indigo-200");
+            });
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            activeBtn.classList.remove("text-indigo-200");
+            activeBtn.classList.add("bg-indigo-800", "text-white");
+            
+            // Update title
+            const titles = { 
+                dashboard: '<i class="fas fa-chart-pie mr-3 text-indigo-600"></i> ภาพรวมผลการเรียน', 
+                manage: '<i class="fas fa-edit mr-3 text-indigo-600"></i> จัดการรายวิชาและเกรด', 
+                import: '<i class="fas fa-file-import mr-3 text-indigo-600"></i> นำเข้าข้อมูล' 
+            };
+            document.getElementById("pageTitle").innerHTML = titles[tabId];
             
             if(tabId === 'manage') renderManageTable();
         }
 
         // --- Data Management ---
         async function fetchGrades() {
-            const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getGrades", username: currentUser }) });
-            const result = await res.json();
-            if (result.success) {
-                globalGrades = result.data;
-                renderDashboard();
+            try {
+                // Show loading state
+                document.getElementById("dashboard-tables").innerHTML = `
+                    <div class="col-span-full flex flex-col items-center justify-center p-12 text-gray-500">
+                        <i class="fas fa-circle-notch fa-spin text-4xl mb-4 text-indigo-400"></i>
+                        <p>กำลังดึงข้อมูล...</p>
+                    </div>`;
+
+                const res = await fetch(API_URL, { 
+                    method: "POST", 
+                    body: JSON.stringify({ action: "getGrades", username: currentUser }) 
+                });
+                const result = await res.json();
+                
+                if (result.success) {
+                    globalGrades = result.data;
+                    renderDashboard();
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch(e) {
+                 document.getElementById("dashboard-tables").innerHTML = `
+                    <div class="col-span-full bg-red-50 text-red-600 p-6 rounded-xl border border-red-200 flex items-center">
+                        <i class="fas fa-exclamation-triangle text-2xl mr-4"></i>
+                        <div>
+                            <h4 class="font-bold">เกิดข้อผิดพลาด</h4>
+                            <p class="text-sm">ไม่สามารถดึงข้อมูลได้ กรุณาลองรีเฟรชหน้าเว็บ</p>
+                        </div>
+                    </div>`;
             }
         }
 
         function renderDashboard() {
-            let totalCreditAll = 0, totalPointAll = 0;
+            let totalCreditAll = 0, totalPointAll = 0, validSubjectsCount = 0;
             const container = document.getElementById("dashboard-tables");
             container.innerHTML = "";
+
+            if (globalGrades.length === 0) {
+                 container.innerHTML = `
+                    <div class="col-span-full bg-white p-12 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-gray-500 text-center">
+                        <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-folder-open text-4xl text-gray-400"></i>
+                        </div>
+                        <h4 class="text-xl font-semibold text-gray-700 mb-2">ยังไม่มีข้อมูลผลการเรียน</h4>
+                        <p class="mb-6">คุณสามารถเพิ่มรายวิชาได้ที่เมนู "จัดการ/กรอกเกรด" หรือ "นำเข้าข้อมูล"</p>
+                        <button onclick="switchTab('import')" class="px-6 py-2 bg-indigo-50 text-indigo-600 rounded-lg font-medium hover:bg-indigo-100 transition-colors">
+                            ไปที่หน้า นำเข้าข้อมูล
+                        </button>
+                    </div>`;
+                 document.getElementById("cgpa-display").innerText = "0.00";
+                 document.getElementById("header-cgpa").innerText = "0.00";
+                 document.getElementById("total-credits").innerText = "0.0";
+                 document.getElementById("total-subjects").innerText = "0";
+                 return;
+            }
 
             const grouped = globalGrades.reduce((acc, curr) => {
                 if (!acc[curr.semester]) acc[curr.semester] = [];
@@ -234,101 +468,285 @@
             }, {});
 
             for (const [semester, subjects] of Object.entries(grouped)) {
-                let termCredit = 0, termPoint = 0;
+                let termCredit = 0, termPoint = 0, termTotalCredit = 0;
                 let rows = "";
+                
                 subjects.forEach(s => {
-                    if(s.grade !== "" && s.grade !== null) { // คำนวณเฉพาะวิชาที่เกรดออกแล้ว
+                    termTotalCredit += s.credit; // นับหน่วยกิตรวมของเทอมนี้ (แม้จะยังไม่มีเกรด)
+                    
+                    let gradeClass = "font-medium";
+                    let gradeText = "-";
+                    
+                    if(s.grade !== "" && s.grade !== null && !isNaN(parseFloat(s.grade))) { 
+                        const gradeVal = parseFloat(s.grade);
                         termCredit += s.credit;
-                        termPoint += (s.credit * s.grade);
+                        termPoint += (s.credit * gradeVal);
+                        validSubjectsCount++;
+                        gradeText = gradeVal.toFixed(1);
+                        
+                        // Color coding for grades
+                        if(gradeVal >= 3.5) gradeClass = "text-green-600 font-bold";
+                        else if(gradeVal >= 2.5) gradeClass = "text-blue-600 font-bold";
+                        else if(gradeVal >= 1.5) gradeClass = "text-yellow-600 font-bold";
+                        else gradeClass = "text-red-600 font-bold";
+                    } else {
+                        gradeClass = "text-gray-400";
                     }
-                    rows += `<tr class="border-b"><td class="p-2">${s.subject}</td><td class="p-2 text-center">${s.credit}</td><td class="p-2 text-center font-bold ${s.grade === "" ? 'text-gray-300' : ''}">${s.grade !== "" ? s.grade : '-'}</td></tr>`;
+
+                    rows += `
+                        <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                            <td class="p-3 text-sm text-gray-700">${s.subject}</td>
+                            <td class="p-3 text-sm text-center text-gray-600">${s.credit.toFixed(1)}</td>
+                            <td class="p-3 text-sm text-center ${gradeClass}">${gradeText}</td>
+                        </tr>
+                    `;
                 });
                 
                 totalCreditAll += termCredit;
                 totalPointAll += termPoint;
                 
+                const termGPA = termCredit > 0 ? (termPoint / termCredit).toFixed(2) : "0.00";
+                
                 container.innerHTML += `
-                    <div class="bg-white p-4 rounded-lg shadow-sm border mb-4">
-                        <h4 class="font-bold text-blue-800 mb-2">${semester}</h4>
-                        <table class="w-full text-sm">${rows}</table>
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-full">
+                        <div class="p-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
+                            <h4 class="font-bold text-indigo-800">${semester}</h4>
+                            <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-1 rounded-full border border-indigo-200">
+                                GPA: ${termGPA}
+                            </span>
+                        </div>
+                        <div class="overflow-x-auto flex-1">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="text-xs text-gray-500 bg-white border-b border-gray-100">
+                                        <th class="p-3 font-medium text-left">รายวิชา</th>
+                                        <th class="p-3 font-medium text-center w-20">นก.</th>
+                                        <th class="p-3 font-medium text-center w-20">เกรด</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${rows}</tbody>
+                            </table>
+                        </div>
+                        <div class="p-3 bg-gray-50 border-t border-gray-100 text-xs text-gray-500 flex justify-between">
+                            <span>หน่วยกิตรวมเทอม: ${termTotalCredit.toFixed(1)}</span>
+                            <span>หน่วยกิตที่ได้ผลการเรียน: ${termCredit.toFixed(1)}</span>
+                        </div>
                     </div>
                 `;
             }
             
             const cgpa = totalCreditAll > 0 ? (totalPointAll / totalCreditAll).toFixed(2) : "0.00";
+            
+            // Animate number change (simple version)
             document.getElementById("cgpa-display").innerText = cgpa;
+            document.getElementById("header-cgpa").innerText = cgpa;
+            document.getElementById("total-credits").innerText = totalCreditAll.toFixed(1);
+            document.getElementById("total-subjects").innerText = validSubjectsCount + " / " + globalGrades.length;
         }
 
         function renderManageTable() {
             const tbody = document.getElementById("editGradeBody");
             tbody.innerHTML = "";
+            
+            if(globalGrades.length === 0) {
+                addEmptyRow(); // เพิ่มแถวว่างให้ 1 แถวถ้าไม่มีข้อมูล
+                return;
+            }
+
             globalGrades.forEach((item, index) => {
-                tbody.innerHTML += `
-                    <tr class="border-b" data-index="${index}" data-rowid="${item.rowId || ''}">
-                        <td class="p-2"><input type="text" class="w-full border p-1 rounded sem-input" value="${item.semester}"></td>
-                        <td class="p-2"><input type="text" class="w-full border p-1 rounded sub-input" value="${item.subject}"></td>
-                        <td class="p-2"><input type="number" step="0.5" class="w-full border p-1 rounded cred-input" value="${item.credit}"></td>
-                        <td class="p-2"><input type="number" step="0.5" class="w-full border p-1 rounded grd-input" value="${item.grade !== "" ? item.grade : ''}" placeholder="-"></td>
-                    </tr>
-                `;
+                appendRowToTable(item, index);
             });
         }
 
+        function appendRowToTable(item, index) {
+            const tbody = document.getElementById("editGradeBody");
+            const tr = document.createElement("tr");
+            tr.className = "hover:bg-gray-50 transition-colors group";
+            tr.setAttribute("data-rowid", item.rowId || "");
+            
+            tr.innerHTML = `
+                <td class="p-3">
+                    <input type="text" class="w-full border border-gray-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none sem-input transition-all" value="${item.semester || ''}" placeholder="เช่น ม.4 เทอม 1">
+                </td>
+                <td class="p-3">
+                    <input type="text" class="w-full border border-gray-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none sub-input transition-all" value="${item.subject || ''}" placeholder="รหัส หรือ ชื่อวิชา">
+                </td>
+                <td class="p-3">
+                    <input type="number" step="0.5" min="0" class="w-full border border-gray-300 p-2 rounded-lg text-sm text-center focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none cred-input transition-all" value="${item.credit !== undefined ? item.credit : ''}">
+                </td>
+                <td class="p-3">
+                    <input type="text" class="w-full border border-gray-300 p-2 rounded-lg text-sm text-center focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none grd-input transition-all font-semibold text-indigo-700" value="${item.grade !== "" && item.grade !== null ? item.grade : ''}" placeholder="-">
+                </td>
+                <td class="p-3 text-center">
+                    <button onclick="removeRow(this)" class="text-gray-400 hover:text-red-500 p-2 rounded-md hover:bg-red-50 transition-colors opacity-50 group-hover:opacity-100" title="ลบรายการนี้">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        }
+
         function addEmptyRow() {
-            globalGrades.push({ semester: "", subject: "", credit: 0, grade: "" });
-            renderManageTable();
+            appendRowToTable({ semester: "", subject: "", credit: "", grade: "" }, -1);
+            // Scroll to bottom
+            const tableContainer = document.querySelector("#tab-manage .overflow-x-auto");
+            tableContainer.scrollTop = tableContainer.scrollHeight;
+        }
+
+        function removeRow(btn) {
+            const tr = btn.closest('tr');
+            // Check if it's an existing row in DB
+            const rowId = tr.getAttribute("data-rowid");
+            if (rowId) {
+                // If we implement delete API, we would call it here.
+                // For now, setting subject to empty will skip it during save, effectively keeping it in DB but maybe we should warn user.
+                alert("ฟีเจอร์ลบข้อมูลที่บันทึกแล้วกำลังพัฒนา (ปัจจุบันจะข้ามการบันทึกบรรทัดนี้)");
+            }
+            tr.remove();
         }
 
         async function saveAllGrades() {
             const rows = document.querySelectorAll("#editGradeBody tr");
             const updatedGrades = [];
+            let hasError = false;
             
             rows.forEach(tr => {
-                const sem = tr.querySelector(".sem-input").value;
-                const sub = tr.querySelector(".sub-input").value;
-                if (!sem || !sub) return; // ข้ามบรรทัดว่าง
+                const sem = tr.querySelector(".sem-input").value.trim();
+                const sub = tr.querySelector(".sub-input").value.trim();
+                const credStr = tr.querySelector(".cred-input").value;
+                let grdStr = tr.querySelector(".grd-input").value.trim();
                 
+                // ข้ามบรรทัดที่ไม่ได้ใส่ชื่อวิชา หรือ เทอม
+                if (!sem && !sub) return;
+                
+                if(!sem || !sub) {
+                    tr.classList.add("bg-red-50");
+                    hasError = true;
+                    return;
+                } else {
+                    tr.classList.remove("bg-red-50");
+                }
+                
+                // Allow empty grade, "-" or specific string for unfinished subjects
+                let finalGrade = "";
+                if(grdStr !== "" && grdStr !== "-") {
+                    const parsedGrade = parseFloat(grdStr);
+                    if(!isNaN(parsedGrade)) {
+                        finalGrade = parsedGrade;
+                    } else {
+                        finalGrade = grdStr; // Keep original string if not a number (e.g. "มส", "ร")
+                    }
+                }
+
                 updatedGrades.push({
                     rowId: tr.getAttribute("data-rowid") || null,
                     semester: sem,
                     subject: sub,
-                    credit: parseFloat(tr.querySelector(".cred-input").value) || 0,
-                    grade: tr.querySelector(".grd-input").value
+                    credit: parseFloat(credStr) || 0,
+                    grade: finalGrade
                 });
             });
 
-            const res = await fetch(API_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "saveGrades", username: currentUser, gradesList: updatedGrades })
-            });
-            const result = await res.json();
-            if(result.success) {
-                alert("บันทึกสำเร็จ");
-                fetchGrades(); // ดึงข้อมูลใหม่
-                switchTab('dashboard');
+            if (hasError) {
+                alert("กรุณากรอก เทอม และ ชื่อวิชา ให้ครบถ้วนสำหรับแถวที่มีข้อมูล");
+                return;
+            }
+
+            if(updatedGrades.length === 0) {
+                 alert("ไม่มีข้อมูลให้บันทึก");
+                 return;
+            }
+
+            const btn = document.querySelector("#tab-manage button[onclick='saveAllGrades()']");
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังบันทึก...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(API_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "saveGrades", username: currentUser, gradesList: updatedGrades })
+                });
+                const result = await res.json();
+                if(result.success) {
+                    // Create a toast notification instead of alert for better UX
+                    showToast("บันทึกข้อมูลเรียบร้อยแล้ว", "success");
+                    await fetchGrades(); // ดึงข้อมูลใหม่
+                    switchTab('dashboard'); // กลับไปหน้าภาพรวม
+                } else {
+                    showToast(result.message || "เกิดข้อผิดพลาดในการบันทึก", "error");
+                }
+            } catch (err) {
+                 showToast("เกิดข้อผิดพลาดในการเชื่อมต่อ", "error");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
         }
 
         // --- Import System ---
         function processImport() {
             const text = document.getElementById("importText").value;
+            if (!text.trim()) {
+                alert("กรุณาวางข้อมูลก่อนกดประมวลผล");
+                return;
+            }
+
             const lines = text.split("\n");
+            let addedCount = 0;
             
             lines.forEach(line => {
-                const parts = line.split(/\t/); // แยกด้วย Tab (เวลาคัดลอกจาก Excel)
+                // Try to split by Tab first, then fallback to multiple spaces if needed
+                let parts = line.split(/\t/);
+                if (parts.length < 3) {
+                     parts = line.split(/\s{2,}/); // Split by 2 or more spaces
+                }
+                
                 if (parts.length >= 3) {
-                    globalGrades.push({
-                        semester: parts[0].trim(),
-                        subject: parts[1].trim(),
-                        credit: parseFloat(parts[2].trim()) || 0,
-                        grade: parts[3] ? parseFloat(parts[3].trim()) : ""
-                    });
+                    const sem = parts[0].trim();
+                    const sub = parts[1].trim();
+                    if(sem && sub) {
+                         let rawGrade = parts[3] ? parts[3].trim() : "";
+                         let finalGrade = "";
+                         if(rawGrade !== "" && rawGrade !== "-" && !rawGrade.includes("เว้นว่าง")) {
+                             const parsedGrd = parseFloat(rawGrade);
+                             finalGrade = isNaN(parsedGrd) ? rawGrade : parsedGrd;
+                         }
+
+                         globalGrades.push({
+                            semester: sem,
+                            subject: sub,
+                            credit: parseFloat(parts[2].trim()) || 0,
+                            grade: finalGrade
+                        });
+                        addedCount++;
+                    }
                 }
             });
             
-            document.getElementById("importText").value = "";
-            alert("ดึงข้อมูลสำเร็จ! กรุณาไปที่เมนู 'จัดการ/กรอกเกรด' เพื่อตรวจสอบและกดบันทึก");
-            switchTab('manage');
+            if (addedCount > 0) {
+                document.getElementById("importText").value = "";
+                showToast(`นำเข้าสำเร็จ ${addedCount} รายการ กรุณาตรวจสอบและกดบันทึก`, "success");
+                switchTab('manage');
+            } else {
+                alert("ไม่พบข้อมูลที่ตรงตามรูปแบบ กรุณาตรวจสอบการคัดลอกข้อมูลอีกครั้ง");
+            }
+        }
+
+        // Simple Toast Notification system
+        function showToast(message, type = "success") {
+            const toast = document.createElement("div");
+            toast.className = `fixed bottom-5 right-5 px-6 py-3 rounded-lg shadow-lg text-white font-medium flex items-center z-50 fade-in transition-opacity duration-300 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
+            
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+            toast.innerHTML = `<i class="fas ${icon} mr-3 text-xl"></i> ${message}`;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
     </script>
 </body>
