@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบคำนวณเกรด</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Sarabun', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-800">
+
+    <!-- ส่วนที่ 1: หน้า Login -->
+    <div id="loginSection" class="flex items-center justify-center min-h-screen">
+        <div class="bg-white p-8 rounded-lg shadow-md w-96">
+            <h2 class="text-2xl font-bold text-center mb-6 text-blue-600">เข้าสู่ระบบ</h2>
+            <input type="text" id="username" placeholder="ชื่อผู้ใช้" class="w-full p-3 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <input type="password" id="password" placeholder="รหัสผ่าน" class="w-full p-3 border rounded mb-6 focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <button onclick="login()" class="w-full bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-700 transition">เข้าสู่ระบบ</button>
+            <p id="loginError" class="text-red-500 text-center mt-4 hidden">ข้อมูลไม่ถูกต้อง!</p>
+        </div>
+    </div>
+
+    <!-- ส่วนที่ 2: หน้า Dashboard (จัดการเกรด) -->
+    <div id="dashboardSection" class="hidden p-6 max-w-5xl mx-auto">
+        <div class="flex justify-between items-center mb-8 bg-white p-4 rounded-lg shadow">
+            <h1 class="text-2xl font-bold">ยินดีต้อนรับ, <span id="displayName" class="text-blue-600"></span></h1>
+            <div>
+                <span class="text-xl font-bold mr-4 bg-yellow-200 px-4 py-2 rounded">GPAX (สะสม): <span id="cgpa">0.00</span></span>
+                <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">ออกจากระบบ</button>
+            </div>
+        </div>
+
+        <!-- ฟอร์มเพิ่มรายวิชา -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h3 class="text-lg font-bold mb-4">เพิ่มรายวิชาใหม่</h3>
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <input type="text" id="newSemester" placeholder="เทอม (เช่น ม.4 เทอม 1)" class="p-2 border rounded">
+                <input type="text" id="newSubject" placeholder="ชื่อวิชา" class="p-2 border rounded">
+                <input type="number" id="newCredit" placeholder="หน่วยกิต" step="0.5" class="p-2 border rounded">
+                <input type="number" id="newGrade" placeholder="เกรดที่ได้" step="0.5" class="p-2 border rounded">
+                <button onclick="addGrade()" id="addBtn" class="bg-green-500 text-white font-bold p-2 rounded hover:bg-green-600">บันทึก</button>
+            </div>
+        </div>
+
+        <!-- พื้นที่แสดงตารางเกรด -->
+        <div id="gradesContainer"></div>
+    </div>
+
+    <script>
+        // *** นำ URL ของ Web App จาก Google Apps Script มาใส่ที่นี่ ***
+        const API_URL = "https://script.google.com/macros/s/AKfycbzwkb-bpdLYL7KnnjKd0Vkou3KkGGQhjbdXYYR7bOYIb3DTuAEJAHaeYOW1kzC4SfBZ/exec"; 
+        
+        let currentUser = "";
+
+        // ตรวจสอบสถานะล็อกอินเมื่อเปิดหน้าเว็บ
+        window.onload = () => {
+            const savedUser = localStorage.getItem("username");
+            const savedName = localStorage.getItem("name");
+            if (savedUser) {
+                currentUser = savedUser;
+                document.getElementById("displayName").innerText = savedName;
+                showDashboard();
+            }
+        };
+
+        async function login() {
+            const user = document.getElementById("username").value;
+            const pass = document.getElementById("password").value;
+            const btn = document.querySelector("#loginSection button");
+            
+            btn.innerText = "กำลังเข้าสู่ระบบ...";
+            
+            const res = await fetch(API_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "login", username: user, password: pass })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                localStorage.setItem("username", user);
+                localStorage.setItem("name", data.name);
+                currentUser = user;
+                document.getElementById("displayName").innerText = data.name;
+                showDashboard();
+            } else {
+                document.getElementById("loginError").classList.remove("hidden");
+                btn.innerText = "เข้าสู่ระบบ";
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            location.reload();
+        }
+
+        function showDashboard() {
+            document.getElementById("loginSection").classList.add("hidden");
+            document.getElementById("dashboardSection").classList.remove("hidden");
+            fetchGrades();
+        }
+
+        async function fetchGrades() {
+            document.getElementById("gradesContainer").innerHTML = "<p class='text-center'>กำลังโหลดข้อมูล...</p>";
+            const res = await fetch(API_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "getGrades", username: currentUser })
+            });
+            const result = await res.json();
+            
+            if (result.success) {
+                renderGrades(result.data);
+            }
+        }
+
+        async function addGrade() {
+            const sem = document.getElementById("newSemester").value;
+            const sub = document.getElementById("newSubject").value;
+            const cred = document.getElementById("newCredit").value;
+            const grd = document.getElementById("newGrade").value;
+            
+            if (!sem || !sub || !cred || !grd) return alert("กรุณากรอกข้อมูลให้ครบ");
+
+            document.getElementById("addBtn").innerText = "กำลังบันทึก...";
+
+            const res = await fetch(API_URL, {
+                method: "POST",
+                body: JSON.stringify({ 
+                    action: "addGrade", 
+                    username: currentUser, 
+                    semester: sem, 
+                    subject: sub, 
+                    credit: cred, 
+                    grade: grd 
+                })
+            });
+            
+            const result = await res.json();
+            if (result.success) {
+                // ล้างฟอร์ม
+                document.getElementById("newSubject").value = "";
+                document.getElementById("newCredit").value = "";
+                document.getElementById("newGrade").value = "";
+                document.getElementById("addBtn").innerText = "บันทึก";
+                fetchGrades(); // โหลดข้อมูลใหม่
+            }
+        }
+
+        function renderGrades(grades) {
+            const container = document.getElementById("gradesContainer");
+            container.innerHTML = "";
+            
+            if (grades.length === 0) {
+                container.innerHTML = "<p class='text-center text-gray-500'>ยังไม่มีข้อมูลผลการเรียน</p>";
+                document.getElementById("cgpa").innerText = "0.00";
+                return;
+            }
+
+            // จัดกลุ่มข้อมูลตามเทอม (Semester)
+            const grouped = grades.reduce((acc, curr) => {
+                if (!acc[curr.semester]) acc[curr.semester] = [];
+                acc[curr.semester].push(curr);
+                return acc;
+            }, {});
+
+            let totalCreditAll = 0;
+            let totalPointAll = 0;
+
+            for (const [semester, subjects] of Object.entries(grouped)) {
+                let termCredit = 0;
+                let termPoint = 0;
+                
+                let tableHTML = `
+                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                    <h3 class="text-xl font-bold mb-4 text-blue-700">${semester}</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 border-b">
+                                    <th class="p-3">วิชา</th>
+                                    <th class="p-3 text-center">หน่วยกิต</th>
+                                    <th class="p-3 text-center">เกรดที่ได้</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                subjects.forEach(s => {
+                    termCredit += s.credit;
+                    termPoint += (s.credit * s.grade);
+                    tableHTML += `
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="p-3">${s.subject}</td>
+                            <td class="p-3 text-center">${s.credit.toFixed(1)}</td>
+                            <td class="p-3 text-center">${s.grade.toFixed(1)}</td>
+                        </tr>
+                    `;
+                });
+
+                totalCreditAll += termCredit;
+                totalPointAll += termPoint;
+                
+                const termGPA = termCredit > 0 ? (termPoint / termCredit).toFixed(2) : "0.00";
+
+                tableHTML += `
+                            </tbody>
+                            <tfoot>
+                                <tr class="bg-blue-50 font-bold">
+                                    <td class="p-3 text-right">รวมเทอมนี้ (GPA)</td>
+                                    <td class="p-3 text-center">${termCredit.toFixed(1)}</td>
+                                    <td class="p-3 text-center text-blue-600">${termGPA}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                `;
+                container.innerHTML += tableHTML;
+            }
+
+            // คำนวณเกรดเฉลี่ยสะสม (CGPA)
+            const cgpa = totalCreditAll > 0 ? (totalPointAll / totalCreditAll).toFixed(2) : "0.00";
+            document.getElementById("cgpa").innerText = cgpa;
+        }
+    </script>
+</body>
+</html>
