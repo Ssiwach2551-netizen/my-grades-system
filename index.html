@@ -19,8 +19,8 @@
 </head>
 <body class="flex h-screen overflow-hidden text-gray-800">
 
-    <!-- Datalist สำหรับดึงข้อมูลวิชาอัตโนมัติ -->
-    <datalist id="subjectList"></datalist>
+    <!-- Datalist สำหรับรหัสวิชา -->
+    <datalist id="subjectCodeList"></datalist>
 
     <!-- Auth Section -->
     <div id="authSection" class="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 z-50">
@@ -81,10 +81,10 @@
                     </table>
                 </div>
 
-                <!-- แสดงผลรายภาคพร้อม Dropdown กรองเทอม -->
+                <!-- แสดงผลรายภาคพร้อม Dropdown -->
                 <div class="flex justify-between items-center mb-4 mt-8">
                     <h3 class="text-lg font-bold text-gray-700">ผลการเรียนรายภาค</h3>
-                    <select id="termFilter" onchange="renderTermTables()" class="border border-gray-300 p-2 rounded-lg text-sm bg-white shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none text-gray-700 font-medium">
+                    <select id="termFilter" onchange="renderTermTables()" class="border border-gray-300 p-2 rounded-lg text-sm bg-white shadow-sm outline-none text-gray-700">
                         <option value="all">ดูทุกภาคเรียน</option>
                     </select>
                 </div>
@@ -94,20 +94,45 @@
             <!-- Manage Tab -->
             <div id="tab-manage" class="tab-content hidden fade-in">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div class="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                        <div><h3 class="text-xl font-bold text-gray-800">จัดการรายวิชาและเกรด</h3><p class="text-sm text-gray-500 mt-1">เลือกภาคเรียนและพิมพ์ชื่อวิชาเพื่อดึงข้อมูลหน่วยกิต/กลุ่มสาระฯ อัตโนมัติ</p></div>
-                        <button onclick="addEmptyRow()" class="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg font-medium border border-indigo-200 hover:bg-indigo-100">+ เพิ่มวิชาใหม่</button>
+                    <div class="p-6 border-b border-gray-100 bg-gray-50">
+                        <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">จัดการเกรดรายภาค</h3>
+                                <p class="text-sm text-gray-500 mt-1">เลือกระดับชั้น/เทอม ระบบจะดึงเทมเพลตวิชามาให้ หากพิมพ์รหัสวิชาใหม่ ชื่อวิชาจะขึ้นอัตโนมัติ</p>
+                            </div>
+                            <!-- Dropdown เลือกเทอมเพื่อแก้ไข -->
+                            <div class="flex items-center gap-3">
+                                <label class="font-semibold text-gray-700 text-sm whitespace-nowrap">เลือกเทอม:</label>
+                                <select id="manageTermSelect" onchange="renderManageTable()" class="border border-gray-300 p-2 rounded-lg text-sm bg-white font-medium focus:ring-2 focus:ring-indigo-500">
+                                    <option value="ปีที่ 1 ภาคเรียนที่ 1">ปีที่ 1 ภาคเรียนที่ 1</option>
+                                    <option value="ปีที่ 1 ภาคเรียนที่ 2">ปีที่ 1 ภาคเรียนที่ 2</option>
+                                    <option value="ปีที่ 2 ภาคเรียนที่ 1">ปีที่ 2 ภาคเรียนที่ 1</option>
+                                    <option value="ปีที่ 2 ภาคเรียนที่ 2">ปีที่ 2 ภาคเรียนที่ 2</option>
+                                    <option value="ปีที่ 3 ภาคเรียนที่ 1">ปีที่ 3 ภาคเรียนที่ 1</option>
+                                    <option value="ปีที่ 3 ภาคเรียนที่ 2">ปีที่ 3 ภาคเรียนที่ 2</option>
+                                </select>
+                                <button onclick="addEmptyRow()" class="px-3 py-2 bg-indigo-50 text-indigo-600 rounded-lg font-medium border border-indigo-200 whitespace-nowrap">+ เพิ่มวิชา</button>
+                            </div>
+                        </div>
                     </div>
+                    
                     <div class="overflow-x-auto">
                         <table class="w-full text-left">
                             <thead class="bg-gray-100 text-sm">
-                                <tr><th class="p-3 w-52">ภาคเรียน</th><th class="p-3">รหัส/ชื่อวิชา</th><th class="p-3 w-48">กลุ่มสาระฯ</th><th class="p-3 w-24 text-center">หน่วยกิต</th><th class="p-3 w-24 text-center">เกรด</th><th class="p-3 w-12"></th></tr>
+                                <tr>
+                                    <th class="p-3 w-32">รหัสวิชา</th>
+                                    <th class="p-3">ชื่อวิชา</th>
+                                    <th class="p-3 w-40">กลุ่มสาระฯ</th>
+                                    <th class="p-3 w-20 text-center">นก.</th>
+                                    <th class="p-3 w-24 text-center">เกรด</th>
+                                    <th class="p-3 w-12"></th>
+                                </tr>
                             </thead>
                             <tbody id="editGradeBody" class="divide-y divide-gray-100"></tbody>
                         </table>
                     </div>
-                    <div class="p-6 flex justify-end">
-                        <button onclick="saveAllGrades()" class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-bold shadow-md hover:bg-indigo-700">บันทึกข้อมูล</button>
+                    <div class="p-6 flex justify-end bg-gray-50 border-t border-gray-100">
+                        <button onclick="saveCurrentTermGrades()" id="saveBtn" class="bg-indigo-600 text-white px-8 py-2.5 rounded-lg font-bold shadow hover:bg-indigo-700">บันทึกข้อมูลเทอมนี้</button>
                     </div>
                 </div>
             </div>
@@ -116,17 +141,8 @@
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbzwkb-bpdLYL7KnnjKd0Vkou3KkGGQhjbdXYYR7bOYIb3DTuAEJAHaeYOW1kzC4SfBZ/exec"; 
-        let currentUser = "", isRegisterMode = false, globalGrades = [], globalSubjects = [];
-
-        // ตัวเลือกภาคเรียนตามรูปแบบในระบบ
-        const SEMESTER_OPTIONS = [
-            "ปีที่ 1 ภาคเรียนที่ 1",
-            "ปีที่ 1 ภาคเรียนที่ 2",
-            "ปีที่ 2 ภาคเรียนที่ 1",
-            "ปีที่ 2 ภาคเรียนที่ 2",
-            "ปีที่ 3 ภาคเรียนที่ 1",
-            "ปีที่ 3 ภาคเรียนที่ 2"
-        ];
+        let currentUser = "", isRegisterMode = false;
+        let globalGrades = [], globalTemplates = [];
 
         window.onload = () => {
             if (localStorage.getItem("username")) setupUserSession(localStorage.getItem("username"), localStorage.getItem("name"));
@@ -167,32 +183,35 @@
             document.getElementById("displayName").innerText = name;
             document.getElementById("userInitial").innerText = name.charAt(0).toUpperCase();
             
-            await fetchSubjects();
-            fetchGrades();
+            await fetchInitialData();
         }
 
         function logout() { localStorage.clear(); location.reload(); }
         function toggleSidebar() { document.getElementById("sidebar").classList.toggle("sidebar-collapsed"); document.getElementById("sidebar").classList.toggle("sidebar-expanded"); }
+        
         function switchTab(tabId) {
             document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden", "fade-in"));
             document.getElementById(`tab-${tabId}`).classList.remove("hidden");
-            if(tabId === 'manage') renderManageTable();
-        }
-
-        async function fetchSubjects() {
-            const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getSubjects" }) });
-            const result = await res.json();
-            if(result.success) {
-                globalSubjects = result.data;
-                const datalist = document.getElementById("subjectList");
-                datalist.innerHTML = globalSubjects.map(s => `<option value="${s.name}">`).join("");
+            if(tabId === 'manage') {
+                renderManageTable();
             }
         }
 
-        async function fetchGrades() {
-            const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getGrades", username: currentUser }) });
-            const result = await res.json();
-            if (result.success) { globalGrades = result.data; renderDashboard(); }
+        async function fetchInitialData() {
+            try {
+                const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getInitialData", username: currentUser }) });
+                const result = await res.json();
+                if (result.success) { 
+                    globalGrades = result.grades; 
+                    globalTemplates = result.templates;
+
+                    // สร้าง Datalist สำหรับรหัสวิชา (ตัดตัวซ้ำออก)
+                    const uniqueCodes = [...new Set(globalTemplates.map(t => t.subjectCode))];
+                    document.getElementById("subjectCodeList").innerHTML = uniqueCodes.map(code => `<option value="${code}">`).join("");
+
+                    renderDashboard(); 
+                }
+            } catch(e) { console.error("Error fetching data", e); }
         }
 
         function renderDashboard() {
@@ -213,7 +232,7 @@
                 }
             });
 
-            // 1. ตารางสรุปกลุ่มสาระฯ
+            // ตารางสรุปกลุ่มสาระฯ
             const summaryBody = document.getElementById("group-summary-body");
             summaryBody.innerHTML = "";
             for(const [grp, stats] of Object.entries(groupStats)) {
@@ -221,19 +240,16 @@
                 summaryBody.innerHTML += `<tr class="hover:bg-gray-50"><td class="p-3 text-gray-800">${grp}</td><td class="p-3 text-center text-gray-600">${stats.credit.toFixed(1)}</td><td class="p-3 text-center font-bold text-indigo-600">${grpGpa}</td></tr>`;
             }
 
-            // 2. คะแนนรวม GPAX
+            // คะแนนรวม
             const cgpa = totalCreditAll > 0 ? (totalPointAll / totalCreditAll).toFixed(2) : "0.00";
             document.getElementById("cgpa-display").innerText = cgpa;
             document.getElementById("total-credits").innerText = totalCreditAll.toFixed(1);
 
-            // 3. ตั้งค่า Dropdown สำหรับเลือกกรองเทอม
+            // ตัวเลือกเทอมในหน้า Dashboard
             const terms = [...new Set(globalGrades.map(g => g.semester))].filter(Boolean).sort();
             const termFilter = document.getElementById("termFilter");
             const currentSelection = termFilter.value;
-            
-            termFilter.innerHTML = `<option value="all">ดูทุกภาคเรียน</option>` + 
-                                   terms.map(t => `<option value="${t}">${t}</option>`).join("");
-            
+            termFilter.innerHTML = `<option value="all">ดูทุกภาคเรียน</option>` + terms.map(t => `<option value="${t}">${t}</option>`).join("");
             if (terms.includes(currentSelection)) termFilter.value = currentSelection;
 
             renderTermTables();
@@ -258,7 +274,8 @@
                         termCred += s.credit; 
                         termPt += (s.credit * parseFloat(s.grade)); 
                     }
-                    return `<tr class="border-b border-gray-100 hover:bg-gray-50"><td class="p-2 text-sm text-gray-700">${s.subject}</td><td class="p-2 text-center text-sm text-gray-500">${s.credit}</td><td class="p-2 text-center text-sm font-bold text-indigo-600">${s.grade || '-'}</td></tr>`;
+                    const displayName = s.subjectCode ? `${s.subjectCode} ${s.subjectName}` : s.subjectName;
+                    return `<tr class="border-b border-gray-100 hover:bg-gray-50"><td class="p-2 text-sm text-gray-700">${displayName}</td><td class="p-2 text-center text-sm text-gray-500">${s.credit}</td><td class="p-2 text-center text-sm font-bold text-indigo-600">${s.grade || '-'}</td></tr>`;
                 }).join("");
                 
                 const termGPA = termCred > 0 ? (termPt / termCred).toFixed(2) : "0.00";
@@ -270,7 +287,7 @@
                         </div>
                         <table class="w-full">
                             <thead class="text-xs text-gray-400 text-left">
-                                <tr><th class="pb-2">วิชา</th><th class="pb-2 text-center">หน่วยกิต</th><th class="pb-2 text-center">เกรด</th></tr>
+                                <tr><th class="pb-2">รหัส/ชื่อวิชา</th><th class="pb-2 text-center">หน่วยกิต</th><th class="pb-2 text-center">เกรด</th></tr>
                             </thead>
                             <tbody>${rows}</tbody>
                         </table>
@@ -278,40 +295,58 @@
             }
         }
 
+        // ฟังก์ชันดึงข้อมูลวิชาอัตโนมัติเมื่อพิมพ์ "รหัสวิชา"
         function autoFillSubject(inputElem) {
             const row = inputElem.closest("tr");
-            const selectedName = inputElem.value;
-            const matchedSubject = globalSubjects.find(s => s.name === selectedName);
+            const code = inputElem.value.trim();
+            // ค้นหาจากเทมเพลตทั้งหมด
+            const matchedSubject = globalTemplates.find(s => s.subjectCode === code);
             
             if(matchedSubject) {
+                row.querySelector(".sub-name-input").value = matchedSubject.subjectName;
+                row.querySelector(".grp-input").value = matchedSubject.subjectGroup;
                 row.querySelector(".cred-input").value = matchedSubject.credit;
-                row.querySelector(".grp-input").value = matchedSubject.group;
             }
         }
 
+        // ฟังก์ชันวาดตารางกรอกเกรด (ดึงเทมเพลตถ้าไม่มีข้อมูล)
         function renderManageTable() {
             const tbody = document.getElementById("editGradeBody");
             tbody.innerHTML = "";
-            if(globalGrades.length === 0) addEmptyRow();
-            else globalGrades.forEach(item => appendRow(item));
+            const selectedTerm = document.getElementById("manageTermSelect").value;
+
+            // 1. ดึงข้อมูลเกรดที่มีอยู่แล้วของเทอมนี้
+            let currentTermGrades = globalGrades.filter(g => g.semester === selectedTerm);
+
+            // 2. ถ้ายังไม่เคยกรอกเลย ให้ดึงเทมเพลตของเทอมนี้มากางให้
+            if(currentTermGrades.length === 0) {
+                const termTemplates = globalTemplates.filter(t => t.semester === selectedTerm);
+                currentTermGrades = termTemplates.map(t => ({
+                    rowId: null, // ใส่ null เพราะยังไม่ได้ถูกเซฟลงฐานข้อมูลจริง
+                    semester: t.semester,
+                    subjectCode: t.subjectCode,
+                    subjectName: t.subjectName,
+                    credit: t.credit,
+                    subjectGroup: t.subjectGroup,
+                    grade: ""
+                }));
+            }
+
+            // วาดแถวลงในตาราง
+            if(currentTermGrades.length === 0) {
+                addEmptyRow(); // ถ้าเทมเพลตก็ไม่มี ให้ขึ้นบรรทัดว่าง
+            } else {
+                currentTermGrades.forEach(item => appendRow(item));
+            }
         }
 
         function appendRow(item) {
             const tr = document.createElement("tr");
             tr.setAttribute("data-rowid", item.rowId || "");
 
-            // สร้าง Dropdown สำหรับกรอกภาคเรียน
-            let semSelectHtml = `<select class="w-full border p-2 rounded text-sm sem-input bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
-                <option value="">** โปรดเลือก **</option>`;
-            SEMESTER_OPTIONS.forEach(opt => {
-                const selected = (item.semester === opt) ? "selected" : "";
-                semSelectHtml += `<option value="${opt}" ${selected}>${opt}</option>`;
-            });
-            semSelectHtml += `</select>`;
-
             tr.innerHTML = `
-                <td class="p-2">${semSelectHtml}</td>
-                <td class="p-2"><input type="text" list="subjectList" onchange="autoFillSubject(this)" class="w-full border p-2 rounded text-sm sub-input" value="${item.subject || ''}" placeholder="ค้นหาวิชา..."></td>
+                <td class="p-2"><input type="text" list="subjectCodeList" onchange="autoFillSubject(this)" class="w-full border p-2 rounded text-sm code-input" value="${item.subjectCode || ''}" placeholder="รหัสวิชา"></td>
+                <td class="p-2"><input type="text" class="w-full border p-2 rounded text-sm bg-gray-50 sub-name-input" value="${item.subjectName || ''}" placeholder="ชื่อวิชา"></td>
                 <td class="p-2"><input type="text" class="w-full border p-2 rounded text-sm bg-gray-50 grp-input" value="${item.subjectGroup || ''}" placeholder="กลุ่มสาระฯ"></td>
                 <td class="p-2"><input type="number" step="0.5" class="w-full border p-2 rounded text-sm text-center cred-input" value="${item.credit !== undefined ? item.credit : ''}"></td>
                 <td class="p-2"><input type="text" class="w-full border p-2 rounded text-sm text-center font-bold text-indigo-600 grd-input" value="${item.grade || ''}" placeholder="-"></td>
@@ -320,18 +355,25 @@
             document.getElementById("editGradeBody").appendChild(tr);
         }
 
-        function addEmptyRow() { appendRow({ semester: "", subject: "", subjectGroup: "", credit: "", grade: "" }); }
+        function addEmptyRow() { 
+            const selectedTerm = document.getElementById("manageTermSelect").value;
+            appendRow({ semester: selectedTerm, subjectCode: "", subjectName: "", subjectGroup: "", credit: "", grade: "" }); 
+        }
 
-        async function saveAllGrades() {
+        async function saveCurrentTermGrades() {
+            const btn = document.getElementById("saveBtn");
+            const selectedTerm = document.getElementById("manageTermSelect").value;
             const updatedGrades = [];
+            
             document.querySelectorAll("#editGradeBody tr").forEach(tr => {
-                const sem = tr.querySelector(".sem-input").value;
-                const sub = tr.querySelector(".sub-input").value.trim();
-                if(sem && sub) {
+                const code = tr.querySelector(".code-input").value.trim();
+                const name = tr.querySelector(".sub-name-input").value.trim();
+                if(code || name) {
                     updatedGrades.push({
                         rowId: tr.getAttribute("data-rowid") || null,
-                        semester: sem, 
-                        subject: sub,
+                        semester: selectedTerm, // บันทึกลงเทอมที่เลือกอยู่ด้านบน
+                        subjectCode: code,
+                        subjectName: name,
                         subjectGroup: tr.querySelector(".grp-input").value.trim() || "อื่นๆ",
                         credit: parseFloat(tr.querySelector(".cred-input").value) || 0,
                         grade: tr.querySelector(".grd-input").value.trim()
@@ -339,13 +381,14 @@
                 }
             });
 
-            if(updatedGrades.length === 0) return alert("กรุณาเลือกภาคเรียนและกรอกชื่อวิชาให้ครบถ้วน");
+            btn.innerText = "กำลังบันทึก...";
             try {
                 await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "saveGrades", username: currentUser, gradesList: updatedGrades }) });
-                alert("บันทึกเรียบร้อย");
-                fetchGrades(); 
+                alert("บันทึกเกรดของเทอม " + selectedTerm + " เรียบร้อย");
+                await fetchInitialData(); // โหลดข้อมูลใหม่ทั้งหมดเพื่ออัปเดต rowId ล่าสุด
                 switchTab('dashboard');
             } catch (err) { alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล"); }
+            btn.innerText = "บันทึกข้อมูลเทอมนี้";
         }
     </script>
 </body>
