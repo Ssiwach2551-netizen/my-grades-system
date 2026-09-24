@@ -236,12 +236,12 @@
             const summaryBody = document.getElementById("group-summary-body");
             summaryBody.innerHTML = "";
             for(const [grp, stats] of Object.entries(groupStats)) {
-                const grpGpa = stats.credit > 0 ? (stats.points / stats.credit).toFixed(2) : "0.00";
+                const grpGpa = stats.credit > 0 ? (Math.floor((stats.points / stats.credit) * 100) / 100).toFixed(2) : "0.00";
                 summaryBody.innerHTML += `<tr class="hover:bg-gray-50"><td class="p-3 text-gray-800">${grp}</td><td class="p-3 text-center text-gray-600">${stats.credit.toFixed(1)}</td><td class="p-3 text-center font-bold text-indigo-600">${grpGpa}</td></tr>`;
             }
 
             // คะแนนรวม
-            const cgpa = totalCreditAll > 0 ? (totalPointAll / totalCreditAll).toFixed(2) : "0.00";
+            const cgpa = totalCreditAll > 0 ? (Math.floor((totalPointAll / totalCreditAll) * 100) / 100).toFixed(2) : "0.00";
             document.getElementById("cgpa-display").innerText = cgpa;
             document.getElementById("total-credits").innerText = totalCreditAll.toFixed(1);
 
@@ -278,7 +278,7 @@
                     return `<tr class="border-b border-gray-100 hover:bg-gray-50"><td class="p-2 text-sm text-gray-700">${displayName}</td><td class="p-2 text-center text-sm text-gray-500">${s.credit}</td><td class="p-2 text-center text-sm font-bold text-indigo-600">${s.grade || '-'}</td></tr>`;
                 }).join("");
                 
-                const termGPA = termCred > 0 ? (termPt / termCred).toFixed(2) : "0.00";
+               const termGPA = termCred > 0 ? (Math.floor((termPt / termCred) * 100) / 100).toFixed(2) : "0.00";
                 container.innerHTML += `
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
                         <div class="flex justify-between items-center mb-3 pb-2 border-b border-gray-100">
