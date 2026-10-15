@@ -19,7 +19,7 @@
 </head>
 <body class="flex h-screen overflow-hidden text-gray-800">
 
-    <!-- Datalist สำหรับรหัสวิชา -->
+    <!-- Datalist สำหรับรหัส/ชื่อวิชา -->
     <datalist id="subjectCodeList"></datalist>
 
     <!-- Auth Section -->
@@ -43,26 +43,28 @@
             <button onclick="toggleSidebar()" class="text-indigo-300 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
         </div>
         <nav class="flex-1 mt-6 px-3 space-y-2">
-            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center p-3 rounded-lg bg-indigo-800 text-white text-left"><i class="fas fa-chart-pie w-6"></i><span class="ml-3 menu-text">ภาพรวม (GPA)</span></button>
-            <button onclick="switchTab('manage')" id="nav-manage" class="w-full flex items-center p-3 rounded-lg text-indigo-200 hover:bg-indigo-800 text-left"><i class="fas fa-edit w-6"></i><span class="ml-3 menu-text">จัดการ/กรอกเกรด</span></button>
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center p-3 rounded-lg bg-indigo-800 text-white text-left transition-colors"><i class="fas fa-chart-pie w-6 text-center"></i><span class="ml-3 menu-text">ภาพรวม (GPA)</span></button>
+            <button onclick="switchTab('manage')" id="nav-manage" class="w-full flex items-center p-3 rounded-lg text-indigo-200 hover:bg-indigo-800 text-left transition-colors"><i class="fas fa-edit w-6 text-center"></i><span class="ml-3 menu-text">จัดการ/กรอกเกรด</span></button>
+            <button onclick="switchTab('calculator')" id="nav-calculator" class="w-full flex items-center p-3 rounded-lg text-indigo-200 hover:bg-indigo-800 text-left transition-colors"><i class="fas fa-calculator w-6 text-center"></i><span class="ml-3 menu-text">คำนวณรายวิชา</span></button>
         </nav>
         <div class="p-4 bg-indigo-950 mt-auto">
             <div class="flex items-center"><div class="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center font-bold" id="userInitial">U</div><span class="ml-3 font-semibold menu-text" id="displayName">ผู้ใช้งาน</span></div>
-            <button onclick="logout()" class="mt-4 w-full flex items-center p-2 text-red-300 hover:bg-red-500 rounded text-sm menu-text"><i class="fas fa-sign-out-alt w-5"></i> ออกจากระบบ</button>
+            <button onclick="logout()" class="mt-4 w-full flex items-center p-2 text-red-300 hover:bg-red-500 rounded text-sm menu-text transition-colors"><i class="fas fa-sign-out-alt w-5 text-center"></i> ออกจากระบบ</button>
         </div>
     </aside>
 
     <!-- Main Content -->
     <main id="mainContent" class="flex-1 flex flex-col h-screen hidden bg-gray-50 overflow-hidden">
-        <header class="h-20 bg-white shadow-sm flex items-center justify-between px-8"><h1 id="pageTitle" class="text-2xl font-bold text-gray-800">ภาพรวมผลการเรียน</h1></header>
+        <header class="h-20 bg-white shadow-sm flex items-center justify-between px-8"><h1 id="pageTitle" class="text-2xl font-bold text-gray-800"><i class="fas fa-chart-pie mr-3 text-indigo-600"></i> ภาพรวมผลการเรียน</h1></header>
         
         <div class="p-8 overflow-y-auto flex-1">
-            <!-- Dashboard Tab -->
+            
+            <!-- 1. Dashboard Tab -->
             <div id="tab-dashboard" class="tab-content fade-in">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <div class="bg-indigo-600 rounded-xl p-6 text-white shadow-md flex justify-between items-center">
-                        <div><p class="text-indigo-200">ผลการเรียนเฉลี่ยตลอดหลักสูตร (GPAX)</p><p class="text-5xl font-bold mt-1" id="cgpa-display">0.00</p></div>
-                        <i class="fas fa-award text-6xl opacity-30"></i>
+                    <div class="bg-indigo-600 rounded-xl p-6 text-white shadow-md flex justify-between items-center relative overflow-hidden">
+                        <div class="z-10"><p class="text-indigo-200">ผลการเรียนเฉลี่ยตลอดหลักสูตร (GPAX)</p><p class="text-5xl font-bold mt-1" id="cgpa-display">0.00</p></div>
+                        <i class="fas fa-award text-8xl opacity-20 absolute -right-4 -bottom-4"></i>
                     </div>
                     <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex justify-between items-center">
                         <div><p class="text-gray-500">หน่วยกิตรวม</p><p class="text-4xl font-bold text-gray-800 mt-1" id="total-credits">0.0</p></div>
@@ -84,14 +86,14 @@
                 <!-- แสดงผลรายภาคพร้อม Dropdown -->
                 <div class="flex justify-between items-center mb-4 mt-8">
                     <h3 class="text-lg font-bold text-gray-700">ผลการเรียนรายภาค</h3>
-                    <select id="termFilter" onchange="renderTermTables()" class="border border-gray-300 p-2 rounded-lg text-sm bg-white shadow-sm outline-none text-gray-700">
+                    <select id="termFilter" onchange="renderTermTables()" class="border border-gray-300 p-2 rounded-lg text-sm bg-white shadow-sm outline-none text-gray-700 font-medium">
                         <option value="all">ดูทุกภาคเรียน</option>
                     </select>
                 </div>
                 <div id="dashboard-tables" class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-8"></div>
             </div>
 
-            <!-- Manage Tab -->
+            <!-- 2. Manage Tab -->
             <div id="tab-manage" class="tab-content hidden fade-in">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div class="p-6 border-b border-gray-100 bg-gray-50">
@@ -100,7 +102,6 @@
                                 <h3 class="text-xl font-bold text-gray-800">จัดการเกรดรายภาค</h3>
                                 <p class="text-sm text-gray-500 mt-1">เลือกระดับชั้น/เทอม ระบบจะดึงเทมเพลตวิชามาให้ หากพิมพ์รหัสวิชาใหม่ ชื่อวิชาจะขึ้นอัตโนมัติ</p>
                             </div>
-                            <!-- Dropdown เลือกเทอมเพื่อแก้ไข -->
                             <div class="flex items-center gap-3">
                                 <label class="font-semibold text-gray-700 text-sm whitespace-nowrap">เลือกเทอม:</label>
                                 <select id="manageTermSelect" onchange="renderManageTable()" class="border border-gray-300 p-2 rounded-lg text-sm bg-white font-medium focus:ring-2 focus:ring-indigo-500">
@@ -111,7 +112,7 @@
                                     <option value="ปีที่ 3 ภาคเรียนที่ 1">ปีที่ 3 ภาคเรียนที่ 1</option>
                                     <option value="ปีที่ 3 ภาคเรียนที่ 2">ปีที่ 3 ภาคเรียนที่ 2</option>
                                 </select>
-                                <button onclick="addEmptyRow()" class="px-3 py-2 bg-indigo-50 text-indigo-600 rounded-lg font-medium border border-indigo-200 whitespace-nowrap">+ เพิ่มวิชา</button>
+                                <button onclick="addManageRow()" class="px-3 py-2 bg-indigo-50 text-indigo-600 rounded-lg font-medium border border-indigo-200 whitespace-nowrap hover:bg-indigo-100">+ เพิ่มวิชา</button>
                             </div>
                         </div>
                     </div>
@@ -132,15 +133,77 @@
                         </table>
                     </div>
                     <div class="p-6 flex justify-end bg-gray-50 border-t border-gray-100">
-                        <button onclick="saveCurrentTermGrades()" id="saveBtn" class="bg-indigo-600 text-white px-8 py-2.5 rounded-lg font-bold shadow hover:bg-indigo-700">บันทึกข้อมูลเทอมนี้</button>
+                        <button onclick="saveCurrentTermGrades()" id="saveBtn" class="bg-indigo-600 text-white px-8 py-2.5 rounded-lg font-bold shadow hover:bg-indigo-700 transition-colors">บันทึกข้อมูลเทอมนี้</button>
                     </div>
                 </div>
             </div>
+
+            <!-- 3. Calculator Tab (จำลองการคำนวณรายวิชา) -->
+            <div id="tab-calculator" class="tab-content hidden fade-in">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden max-w-4xl mx-auto">
+                    <div class="p-6 border-b border-gray-100 bg-indigo-50 flex items-center justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">จำลองการคำนวณเกรดรายวิชา</h3>
+                            <p class="text-sm text-gray-500 mt-1">เลือกรหัสวิชา ระบบจะดึงเกรดที่คุณเคยได้มาแสดง คุณสามารถเพิ่มเทอมเพื่อจำลองเกรดในอนาคตได้ (ไม่บันทึกลงระบบจริง)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6">
+                        <!-- ส่วนค้นหาวิชา -->
+                        <div class="mb-6 flex flex-col md:flex-row gap-4 items-end">
+                            <div class="flex-1">
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">รหัสวิชา / ชื่อวิชา</label>
+                                <div class="flex">
+                                    <input type="text" id="calcSearchInput" list="subjectCodeList" placeholder="เช่น ค31101 หรือ คณิตศาสตร์" class="w-full border border-gray-300 p-3 rounded-l-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                                    <button onclick="loadCalcSubject()" class="bg-indigo-600 text-white px-4 py-3 rounded-r-lg font-medium hover:bg-indigo-700"><i class="fas fa-search"></i> ค้นหา</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- การ์ดแสดงผลลัพธ์ -->
+                        <div class="bg-indigo-600 rounded-xl p-6 text-white shadow-md flex justify-between items-center mb-6 relative overflow-hidden">
+                            <div class="z-10">
+                                <p class="text-indigo-200">เกรดเฉลี่ยวิชา <span id="calcSubjectName" class="font-bold text-white">-</span></p>
+                                <p class="text-5xl font-bold mt-1" id="calcGPA-display">0.00</p>
+                            </div>
+                            <div class="z-10 text-right hidden md:block">
+                                <p class="text-indigo-200">หน่วยกิตรวม</p>
+                                <p class="text-2xl font-bold mt-1" id="calcCredit-display">0.0</p>
+                            </div>
+                            <i class="fas fa-calculator text-8xl opacity-20 absolute -right-4 -bottom-4"></i>
+                        </div>
+
+                        <!-- ตารางกรอกสำหรับคำนวณ -->
+                        <div class="border border-gray-200 rounded-lg overflow-hidden">
+                            <table class="w-full text-left">
+                                <thead class="bg-gray-100 text-sm">
+                                    <tr>
+                                        <th class="p-3">ภาคเรียน (อ้างอิง)</th>
+                                        <th class="p-3 w-32 text-center">หน่วยกิต</th>
+                                        <th class="p-3 w-32 text-center">เกรดที่ได้</th>
+                                        <th class="p-3 w-16 text-center">ลบ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="calcBody" class="divide-y divide-gray-100">
+                                    <!-- Rows go here -->
+                                </tbody>
+                            </table>
+                            <div class="p-3 bg-gray-50 flex justify-between items-center">
+                                <button onclick="addCalcRow('', '', '')" class="text-indigo-600 font-semibold text-sm hover:underline"><i class="fas fa-plus mr-1"></i> เพิ่มเทอมใหม่</button>
+                                <button onclick="calculateSpecificGPA()" class="bg-green-500 text-white px-6 py-2 rounded-lg font-bold shadow hover:bg-green-600 transition-colors">คำนวณเกรดวิชานี้</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </main>
 
     <script>
+        // *** อย่าลืมวาง WEB_APP_URL ของคุณ ***
         const API_URL = "https://script.google.com/macros/s/AKfycbzwkb-bpdLYL7KnnjKd0Vkou3KkGGQhjbdXYYR7bOYIb3DTuAEJAHaeYOW1kzC4SfBZ/exec"; 
+        
         let currentUser = "", isRegisterMode = false;
         let globalGrades = [], globalTemplates = [];
 
@@ -162,13 +225,20 @@
             if (!user || !pass || (isRegisterMode && !name)) return alert("กรุณากรอกข้อมูลให้ครบ");
             
             const btn = document.getElementById("authBtn");
-            btn.innerText = "กำลังโหลด...";
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังโหลด...';
             
             try {
                 const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: isRegisterMode ? "register" : "login", username: user, password: pass, name }) });
                 const data = await res.json();
-                if (data.success) isRegisterMode ? (alert("ลงทะเบียนสำเร็จ!"), toggleAuthMode()) : setupUserSession(user, data.name);
-                else alert(data.message);
+                if (data.success) {
+                    if (isRegisterMode) {
+                        alert("ลงทะเบียนสำเร็จ!"); 
+                        toggleAuthMode();
+                        document.getElementById("authPassword").value = "";
+                    } else {
+                        setupUserSession(user, data.name);
+                    }
+                } else alert(data.message);
             } catch (err) { alert("เกิดข้อผิดพลาดในการเชื่อมต่อ"); }
             btn.innerText = isRegisterMode ? "สร้างบัญชีใหม่" : "เข้าสู่ระบบ";
         }
@@ -192,8 +262,27 @@
         function switchTab(tabId) {
             document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden", "fade-in"));
             document.getElementById(`tab-${tabId}`).classList.remove("hidden");
-            if(tabId === 'manage') {
-                renderManageTable();
+            
+            // อัปเดตเมนูด้านข้าง
+            document.querySelectorAll("nav button").forEach(btn => {
+                btn.classList.remove("bg-indigo-800", "text-white");
+                btn.classList.add("text-indigo-200");
+            });
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            activeBtn.classList.remove("text-indigo-200");
+            activeBtn.classList.add("bg-indigo-800", "text-white");
+
+            // อัปเดตหัวข้อหน้า
+            const titles = { 
+                dashboard: '<i class="fas fa-chart-pie mr-3 text-indigo-600"></i> ภาพรวมผลการเรียน', 
+                manage: '<i class="fas fa-edit mr-3 text-indigo-600"></i> จัดการ/กรอกเกรด',
+                calculator: '<i class="fas fa-calculator mr-3 text-indigo-600"></i> คำนวณรายวิชาเฉพาะ'
+            };
+            document.getElementById("pageTitle").innerHTML = titles[tabId];
+
+            if(tabId === 'manage') renderManageTable();
+            if(tabId === 'calculator' && document.getElementById("calcBody").innerHTML.trim() === "") {
+                addCalcRow("", "", ""); // เพิ่มแถวว่างรอไว้ 1 แถวถ้ายังไม่มีอะไร
             }
         }
 
@@ -205,8 +294,8 @@
                     globalGrades = result.grades; 
                     globalTemplates = result.templates;
 
-                    // สร้าง Datalist สำหรับรหัสวิชา (ตัดตัวซ้ำออก)
-                    const uniqueCodes = [...new Set(globalTemplates.map(t => t.subjectCode))];
+                    // สร้าง Datalist สำหรับรหัสวิชา
+                    const uniqueCodes = [...new Set(globalTemplates.map(t => t.subjectCode).concat(globalGrades.map(g => g.subjectCode)))].filter(Boolean);
                     document.getElementById("subjectCodeList").innerHTML = uniqueCodes.map(code => `<option value="${code}">`).join("");
 
                     renderDashboard(); 
@@ -232,7 +321,7 @@
                 }
             });
 
-            // ตารางสรุปกลุ่มสาระฯ
+            // ตารางสรุปกลุ่มสาระฯ (หั่นทศนิยมทิ้ง ไม่ปัดเศษขึ้น)
             const summaryBody = document.getElementById("group-summary-body");
             summaryBody.innerHTML = "";
             for(const [grp, stats] of Object.entries(groupStats)) {
@@ -240,7 +329,7 @@
                 summaryBody.innerHTML += `<tr class="hover:bg-gray-50"><td class="p-3 text-gray-800">${grp}</td><td class="p-3 text-center text-gray-600">${stats.credit.toFixed(1)}</td><td class="p-3 text-center font-bold text-indigo-600">${grpGpa}</td></tr>`;
             }
 
-            // คะแนนรวม
+            // คะแนนรวม GPAX (หั่นทศนิยมทิ้ง)
             const cgpa = totalCreditAll > 0 ? (Math.floor((totalPointAll / totalCreditAll) * 100) / 100).toFixed(2) : "0.00";
             document.getElementById("cgpa-display").innerText = cgpa;
             document.getElementById("total-credits").innerText = totalCreditAll.toFixed(1);
@@ -278,7 +367,8 @@
                     return `<tr class="border-b border-gray-100 hover:bg-gray-50"><td class="p-2 text-sm text-gray-700">${displayName}</td><td class="p-2 text-center text-sm text-gray-500">${s.credit}</td><td class="p-2 text-center text-sm font-bold text-indigo-600">${s.grade || '-'}</td></tr>`;
                 }).join("");
                 
-               const termGPA = termCred > 0 ? (Math.floor((termPt / termCred) * 100) / 100).toFixed(2) : "0.00";
+                // หั่นทศนิยมทิ้ง ไม่ปัดเศษ
+                const termGPA = termCred > 0 ? (Math.floor((termPt / termCred) * 100) / 100).toFixed(2) : "0.00";
                 container.innerHTML += `
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
                         <div class="flex justify-between items-center mb-3 pb-2 border-b border-gray-100">
@@ -295,11 +385,10 @@
             }
         }
 
-        // ฟังก์ชันดึงข้อมูลวิชาอัตโนมัติเมื่อพิมพ์ "รหัสวิชา"
-        function autoFillSubject(inputElem) {
+        // ================== ส่วนของการจัดการเกรดรายภาค (Manage Tab) ==================
+        function autoFillSubjectManage(inputElem) {
             const row = inputElem.closest("tr");
             const code = inputElem.value.trim();
-            // ค้นหาจากเทมเพลตทั้งหมด
             const matchedSubject = globalTemplates.find(s => s.subjectCode === code);
             
             if(matchedSubject) {
@@ -309,20 +398,17 @@
             }
         }
 
-        // ฟังก์ชันวาดตารางกรอกเกรด (ดึงเทมเพลตถ้าไม่มีข้อมูล)
         function renderManageTable() {
             const tbody = document.getElementById("editGradeBody");
             tbody.innerHTML = "";
             const selectedTerm = document.getElementById("manageTermSelect").value;
 
-            // 1. ดึงข้อมูลเกรดที่มีอยู่แล้วของเทอมนี้
             let currentTermGrades = globalGrades.filter(g => g.semester === selectedTerm);
 
-            // 2. ถ้ายังไม่เคยกรอกเลย ให้ดึงเทมเพลตของเทอมนี้มากางให้
             if(currentTermGrades.length === 0) {
                 const termTemplates = globalTemplates.filter(t => t.semester === selectedTerm);
                 currentTermGrades = termTemplates.map(t => ({
-                    rowId: null, // ใส่ null เพราะยังไม่ได้ถูกเซฟลงฐานข้อมูลจริง
+                    rowId: null,
                     semester: t.semester,
                     subjectCode: t.subjectCode,
                     subjectName: t.subjectName,
@@ -332,32 +418,31 @@
                 }));
             }
 
-            // วาดแถวลงในตาราง
             if(currentTermGrades.length === 0) {
-                addEmptyRow(); // ถ้าเทมเพลตก็ไม่มี ให้ขึ้นบรรทัดว่าง
+                addManageRow();
             } else {
-                currentTermGrades.forEach(item => appendRow(item));
+                currentTermGrades.forEach(item => appendManageRow(item));
             }
         }
 
-        function appendRow(item) {
+        function appendManageRow(item) {
             const tr = document.createElement("tr");
             tr.setAttribute("data-rowid", item.rowId || "");
 
             tr.innerHTML = `
-                <td class="p-2"><input type="text" list="subjectCodeList" onchange="autoFillSubject(this)" class="w-full border p-2 rounded text-sm code-input" value="${item.subjectCode || ''}" placeholder="รหัสวิชา"></td>
-                <td class="p-2"><input type="text" class="w-full border p-2 rounded text-sm bg-gray-50 sub-name-input" value="${item.subjectName || ''}" placeholder="ชื่อวิชา"></td>
-                <td class="p-2"><input type="text" class="w-full border p-2 rounded text-sm bg-gray-50 grp-input" value="${item.subjectGroup || ''}" placeholder="กลุ่มสาระฯ"></td>
-                <td class="p-2"><input type="number" step="0.5" class="w-full border p-2 rounded text-sm text-center cred-input" value="${item.credit !== undefined ? item.credit : ''}"></td>
-                <td class="p-2"><input type="text" class="w-full border p-2 rounded text-sm text-center font-bold text-indigo-600 grd-input" value="${item.grade || ''}" placeholder="-"></td>
-                <td class="p-2 text-center"><button onclick="this.closest('tr').remove()" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button></td>
+                <td class="p-2"><input type="text" list="subjectCodeList" onchange="autoFillSubjectManage(this)" class="w-full border border-gray-300 p-2 rounded text-sm code-input focus:ring-2 focus:ring-indigo-500 outline-none" value="${item.subjectCode || ''}" placeholder="รหัสวิชา"></td>
+                <td class="p-2"><input type="text" class="w-full border border-gray-300 p-2 rounded text-sm bg-gray-50 sub-name-input outline-none" value="${item.subjectName || ''}" placeholder="ชื่อวิชา"></td>
+                <td class="p-2"><input type="text" class="w-full border border-gray-300 p-2 rounded text-sm bg-gray-50 grp-input outline-none" value="${item.subjectGroup || ''}" placeholder="กลุ่มสาระฯ"></td>
+                <td class="p-2"><input type="number" step="0.5" class="w-full border border-gray-300 p-2 rounded text-sm text-center cred-input focus:ring-2 focus:ring-indigo-500 outline-none" value="${item.credit !== undefined ? item.credit : ''}"></td>
+                <td class="p-2"><input type="text" class="w-full border border-gray-300 p-2 rounded text-sm text-center font-bold text-indigo-600 grd-input focus:ring-2 focus:ring-indigo-500 outline-none" value="${item.grade || ''}" placeholder="-"></td>
+                <td class="p-2 text-center"><button onclick="this.closest('tr').remove()" class="text-gray-400 hover:text-red-500 transition-colors"><i class="fas fa-trash-alt"></i></button></td>
             `;
             document.getElementById("editGradeBody").appendChild(tr);
         }
 
-        function addEmptyRow() { 
+        function addManageRow() { 
             const selectedTerm = document.getElementById("manageTermSelect").value;
-            appendRow({ semester: selectedTerm, subjectCode: "", subjectName: "", subjectGroup: "", credit: "", grade: "" }); 
+            appendManageRow({ semester: selectedTerm, subjectCode: "", subjectName: "", subjectGroup: "", credit: "", grade: "" }); 
         }
 
         async function saveCurrentTermGrades() {
@@ -371,7 +456,7 @@
                 if(code || name) {
                     updatedGrades.push({
                         rowId: tr.getAttribute("data-rowid") || null,
-                        semester: selectedTerm, // บันทึกลงเทอมที่เลือกอยู่ด้านบน
+                        semester: selectedTerm,
                         subjectCode: code,
                         subjectName: name,
                         subjectGroup: tr.querySelector(".grp-input").value.trim() || "อื่นๆ",
@@ -381,14 +466,78 @@
                 }
             });
 
-            btn.innerText = "กำลังบันทึก...";
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังบันทึก...';
             try {
                 await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "saveGrades", username: currentUser, gradesList: updatedGrades }) });
                 alert("บันทึกเกรดของเทอม " + selectedTerm + " เรียบร้อย");
-                await fetchInitialData(); // โหลดข้อมูลใหม่ทั้งหมดเพื่ออัปเดต rowId ล่าสุด
+                await fetchInitialData(); 
                 switchTab('dashboard');
             } catch (err) { alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล"); }
             btn.innerText = "บันทึกข้อมูลเทอมนี้";
+        }
+
+
+        // ================== ส่วนของเครื่องคิดเลขคำนวณวิชาเฉพาะ (Calculator Tab) ==================
+        function loadCalcSubject() {
+            const query = document.getElementById("calcSearchInput").value.trim();
+            if(!query) return;
+
+            // ค้นหาวิชาจากเกรดที่ผู้ใช้เคยกรอกไว้
+            const existingGrades = globalGrades.filter(g => g.subjectCode === query || g.subjectName.includes(query));
+            const tbody = document.getElementById("calcBody");
+            tbody.innerHTML = "";
+
+            if(existingGrades.length > 0) {
+                // ถ้าเคยเรียนวิชานี้แล้ว ให้ดึงข้อมูลเทอมเก่าๆ มากางให้เลย
+                document.getElementById("calcSubjectName").innerText = existingGrades[0].subjectName || query;
+                existingGrades.forEach(g => {
+                    addCalcRow(g.semester, g.credit, g.grade);
+                });
+            } else {
+                // ถ้าไม่เคยเรียน แต่มีในเทมเพลต (ดึงหน่วยกิตมากางรอ)
+                const tmpl = globalTemplates.find(t => t.subjectCode === query || t.subjectName.includes(query));
+                if(tmpl) {
+                    document.getElementById("calcSubjectName").innerText = tmpl.subjectName;
+                    addCalcRow(tmpl.semester, tmpl.credit, "");
+                } else {
+                    document.getElementById("calcSubjectName").innerText = query;
+                    addCalcRow("เทอมจำลอง", "", "");
+                }
+            }
+            calculateSpecificGPA();
+        }
+
+        function addCalcRow(semester = "", credit = "", grade = "") {
+            const tbody = document.getElementById("calcBody");
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td class="p-2"><input type="text" value="${semester}" placeholder="ระบุเทอม (ไม่บังคับ)" class="w-full border border-gray-300 p-2 rounded text-sm text-gray-600 outline-none focus:ring-2 focus:ring-indigo-400"></td>
+                <td class="p-2"><input type="number" step="0.5" value="${credit}" oninput="calculateSpecificGPA()" placeholder="หน่วยกิต" class="w-full border border-gray-300 p-2 rounded text-sm text-center outline-none focus:ring-2 focus:ring-indigo-400 calc-cred"></td>
+                <td class="p-2"><input type="number" step="0.5" value="${grade}" oninput="calculateSpecificGPA()" placeholder="เกรด" class="w-full border border-gray-300 p-2 rounded text-sm text-center font-bold text-indigo-600 outline-none focus:ring-2 focus:ring-indigo-400 calc-grade"></td>
+                <td class="p-2 text-center"><button onclick="this.closest('tr').remove(); calculateSpecificGPA();" class="text-gray-400 hover:text-red-500 transition-colors"><i class="fas fa-times"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        function calculateSpecificGPA() {
+            let totalCred = 0;
+            let totalPoint = 0;
+            
+            document.querySelectorAll("#calcBody tr").forEach(tr => {
+                const credVal = parseFloat(tr.querySelector(".calc-cred").value);
+                const gradeVal = parseFloat(tr.querySelector(".calc-grade").value);
+                
+                if(!isNaN(credVal) && !isNaN(gradeVal)) {
+                    totalCred += credVal;
+                    totalPoint += (credVal * gradeVal);
+                }
+            });
+
+            // หั่นทศนิยมทิ้งเหมือนในระบบจริง
+            const finalGPA = totalCred > 0 ? (Math.floor((totalPoint / totalCred) * 100) / 100).toFixed(2) : "0.00";
+            
+            document.getElementById("calcGPA-display").innerText = finalGPA;
+            document.getElementById("calcCredit-display").innerText = totalCred.toFixed(1);
         }
     </script>
 </body>
